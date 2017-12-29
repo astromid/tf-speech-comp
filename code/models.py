@@ -1,6 +1,4 @@
-import numpy as np
-from tensorflow import keras
-from tensorflow.python.keras.models import Model
+import tensorflow.python.keras.models
 from tensorflow.python.keras.layers import Conv2D, Dense, Input, Flatten
 from tensorflow.python.keras.layers import Dropout, BatchNormalization, MaxPooling2D
 from tensorflow.python.keras import optimizers, losses
@@ -32,8 +30,8 @@ def palsol_model():
     dense2 = BatchNormalization()(Dense(128, activation=relu)(dense1))
     out = Dense(N_CLASS, activation=softmax)(dense2)
 
-    model = Model(inputs=[i], outputs=out)
+    model = tensorflow.python.keras.models.Model(inputs=[i], outputs=out)
     opt = optimizers.Adam()
-    model.compile(optimizer=opt, loss=losses.binary_crossentropy)
+    model.compile(optimizer=opt, loss=losses.binary_crossentropy, metrics=['acc'])
     return model
 

@@ -4,8 +4,8 @@ import os
 from glob import glob
 from scipy.io import wavfile
 
-SEED = 12017952
-np.random.seed(SEED)
+#SEED = 12017952
+#np.random.seed(SEED)
 ROOT_DIR = '..'
 LABELS = 'down go left no off on right silence stop unknown up yes'.split()
 L = 16000
