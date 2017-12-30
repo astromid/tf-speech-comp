@@ -26,8 +26,9 @@ model = load_model(MODEL_PATH)
 pred = []
 for batch in tqdm(test_gen, total=TOTAL):
     y = model.predict(batch)
-    label = ID2LABEL[y]
-    pred.append(label)
+    ids = np.argmax(y, axis=1)
+    labels = [ID2LABEL[id] for id in ids]
+    pred += labels
 
 sub = pd.read_csv(SAMPLE_SUB)
 sub['label'] = pred
