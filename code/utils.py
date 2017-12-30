@@ -96,40 +96,41 @@ def train_generator(files, batch_size, max_silence_rate):
 def val_generator(files, batch_size, silence_rate):
     silence_gen = _silence_generator()
     n_val = len(files)
-    idx = 0
-    n_batches = np.ceil(n_val / batch_size).astype('int')
-    for _ in range(n_batches):
-        x_batch = []
-        y_batch = []
-        val_num = (1 - silence_rate) * batch_size
-        while (len(x_batch) < val_num) and (idx < n_val):
-            curr_path = files[idx]
-            label = os.path.dirname(curr_path)
-            f_name = os.path.basename(curr_path)
-            idx += 1
-            if label == '_background_noise_':
-                continue
-            rate, sample = wavfile.read(os.path.join(TRAIN_DIR, label, f_name))
-            sample = _pad_sample(sample)
-            spec = librosa.feature.melspectrogram(sample, rate)
-            spec = librosa.power_to_db(spec, ref=np.max)
-            x_batch.append(spec)
-            y = np.zeros(len(LABELS))
-            if label not in LABELS:
-                label = 'unknown'
-            y[LABEL2ID[label]] = 1
-            y_batch.append(y)
-        while len(x_batch) < batch_size:
-            sample = next(silence_gen)
-            spec = librosa.feature.melspectrogram(sample, L)
-            spec = librosa.power_to_db(spec, ref=np.max)
-            x_batch.append(spec)
-            y = np.zeros(len(LABELS))
-            y[LABEL2ID['silence']] = 1
-            y_batch.append(y)
-        x_batch = np.array(x_batch)
-        y_batch = np.array(y_batch)
-        yield x_batch.reshape(x_batch.shape + (1,)), y_batch
+    while True:
+        idx = 0
+        n_batches = np.ceil(n_val / batch_size).astype('int')
+        for _ in range(n_batches):
+            x_batch = []
+            y_batch = []
+            val_num = (1 - silence_rate) * batch_size
+            while (len(x_batch) < val_num) and (idx < n_val):
+                curr_path = files[idx]
+                label = os.path.dirname(curr_path)
+                f_name = os.path.basename(curr_path)
+                idx += 1
+                if label == '_background_noise_':
+                    continue
+                rate, sample = wavfile.read(os.path.join(TRAIN_DIR, label, f_name))
+                sample = _pad_sample(sample)
+                spec = librosa.feature.melspectrogram(sample, rate)
+                spec = librosa.power_to_db(spec, ref=np.max)
+                x_batch.append(spec)
+                y = np.zeros(len(LABELS))
+                if label not in LABELS:
+                    label = 'unknown'
+                y[LABEL2ID[label]] = 1
+                y_batch.append(y)
+            while len(x_batch) < batch_size:
+                sample = next(silence_gen)
+                spec = librosa.feature.melspectrogram(sample, L)
+                spec = librosa.power_to_db(spec, ref=np.max)
+                x_batch.append(spec)
+                y = np.zeros(len(LABELS))
+                y[LABEL2ID['silence']] = 1
+                y_batch.append(y)
+            x_batch = np.array(x_batch)
+            y_batch = np.array(y_batch)
+            yield x_batch.reshape(x_batch.shape + (1,)), y_batch
 
 
 def test_generator(batch_size):

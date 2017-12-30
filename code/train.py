@@ -40,7 +40,7 @@ hist = model.fit_generator(
     verbose=1,
     callbacks=[tb_cb],
     validation_data=val_gen,
-    validation_steps=np.ceil(n_val / BATCH_SIZE).astype('int') - 1
+    validation_steps=np.ceil(n_val / BATCH_SIZE).astype('int')
 )
 
 model.save(os.path.join(MODELS_DIR, args.name, 'model.h5'))
