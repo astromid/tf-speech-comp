@@ -35,12 +35,12 @@ tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 
 hist = model.fit_generator(
     generator=train_gen,
-    steps_per_epoch=np.ceil((n_train-6)/BATCH_SIZE).astype('int'),
+    steps_per_epoch=np.ceil((n_train - 6) / BATCH_SIZE).astype('int'),
     epochs=EPOCHS,
     verbose=1,
     callbacks=[tb_cb],
     validation_data=val_gen,
-    validation_steps=np.ceil(n_val/BATCH_SIZE).astype('int')
+    validation_steps=np.ceil(n_val / BATCH_SIZE).astype('int') - 1
 )
 
 model.save(os.path.join(MODELS_DIR, args.name, 'model.h5'))
