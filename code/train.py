@@ -15,8 +15,8 @@ args = parser.parse_args()
 
 ROOT_DIR = '..'
 MODELS_DIR = os.path.join(ROOT_DIR, 'models')
-BATCH_SIZE = args.batch_size
-MAX_SILENCE_RATE = args.max_silence_rate
+BATCH_SIZE = int(args.batch_size)
+MAX_SILENCE_RATE = float(args.max_silence_rate)
 LOGS_PATH = os.path.join(MODELS_DIR, args.name, 'logs')
 
 os.makedirs(LOGS_PATH)
