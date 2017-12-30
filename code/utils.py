@@ -4,8 +4,8 @@ import os
 from glob import glob
 from scipy.io import wavfile
 
-#SEED = 12017952
-#np.random.seed(SEED)
+# SEED = 12017952
+# np.random.seed(SEED)
 ROOT_DIR = '..'
 LABELS = 'down go left no off on right silence stop unknown up yes'.split()
 L = 16000
@@ -88,7 +88,9 @@ def train_generator(files, batch_size, max_silence_rate):
                 y = np.zeros(len(LABELS))
                 y[LABEL2ID['silence']] = 1
                 y_batch.append(y)
-            yield np.array(x_batch), np.array(y_batch)
+            x_batch = np.array(x_batch)
+            y_batch = np.array(y_batch)
+            yield x_batch.reshape(x_batch.shape + (1,)), y_batch
 
 
 def val_generator(files, batch_size, silence_rate):
@@ -125,7 +127,9 @@ def val_generator(files, batch_size, silence_rate):
             y = np.zeros(len(LABELS))
             y[LABEL2ID['silence']] = 1
             y_batch.append(y)
-        yield np.array(x_batch), np.array(y_batch)
+        x_batch = np.array(x_batch)
+        y_batch = np.array(y_batch)
+        yield x_batch.reshape(x_batch.shape + (1,)), y_batch
 
 
 def test_generator(batch_size):
@@ -144,4 +148,5 @@ def test_generator(batch_size):
             spec = librosa.feature.melspectrogram(sample, rate)
             spec = librosa.power_to_db(spec, ref=np.max)
             x_batch.append(spec)
-        yield np.array(x_batch)
+        x_batch = np.array(x_batch)
+        yield x_batch.reshape(x_batch.shape + (1,))
