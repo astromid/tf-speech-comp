@@ -18,6 +18,7 @@ MODELS_DIR = os.path.join(ROOT_DIR, 'models')
 BATCH_SIZE = int(args.batch_size)
 MAX_SILENCE_RATE = float(args.max_silence_rate)
 LOGS_PATH = os.path.join(MODELS_DIR, args.name, 'logs')
+EPOCHS = int(args.epochs)
 
 os.makedirs(LOGS_PATH)
 
@@ -35,7 +36,7 @@ tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 hist = model.fit_generator(
     generator=train_gen,
     steps_per_epoch=np.ceil((n_train-6)/BATCH_SIZE).astype('int'),
-    epochs=args.epochs,
+    epochs=EPOCHS,
     verbose=1,
     callbacks=[tb_cb],
     validation_data=val_gen,
