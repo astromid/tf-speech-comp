@@ -138,7 +138,7 @@ def test_generator(batch_size):
                   glob(os.path.join(TEST_DIR, '*wav'))]
     n_test = len(test_files)
     idx = 0
-    n_batches = np.ceil(n_test / batch_size)
+    n_batches = np.ceil(n_test / batch_size).astype('int')
     for _ in range(n_batches):
         x_batch = []
         while (len(x_batch) < batch_size) and (idx < n_test):
