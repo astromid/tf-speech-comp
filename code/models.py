@@ -9,9 +9,9 @@ N_CLASS = 12
 
 def palsol_model():
     i = Input(shape=(128, 32, 1))
-    i = BatchNormalization()(i)
+    norm_i = BatchNormalization()(i)
 
-    conv1 = Conv2D(32, kernel_size=2, activation=relu)(i)
+    conv1 = Conv2D(32, kernel_size=2, activation=relu)(norm_i)
     conv2 = Conv2D(32, kernel_size=2, activation=relu)(conv1)
     pool1 = MaxPooling2D(pool_size=(2, 2))(conv2)
     drop1 = Dropout(rate=0.1)(pool1)
