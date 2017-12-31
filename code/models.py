@@ -3,6 +3,7 @@ from tensorflow.python.keras.layers import Conv2D, Dense, Input, Flatten
 from tensorflow.python.keras.layers import Dropout, BatchNormalization, MaxPooling2D
 from tensorflow.python.keras import optimizers, losses
 from tensorflow.python.keras.activations import relu, softmax
+import tensorflow.python.keras.metrics as metrics
 
 N_CLASS = 12
 
@@ -32,5 +33,8 @@ def palsol_model():
 
     model = Model(inputs=[i], outputs=out)
     opt = optimizers.Adam()
-    model.compile(optimizer=opt, loss=losses.binary_crossentropy, metrics=['acc'])
+    model.compile(
+        optimizer=opt,
+        loss=losses.binary_crossentropy,
+        metrics=[metrics.categorical_accuracy])
     return model
