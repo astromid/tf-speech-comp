@@ -62,8 +62,8 @@ def train_generator(files, batch_size, max_silence_rate):
             x_batch = []
             y_batch = []
             train_num = (1 - np.random.rand() * max_silence_rate) * batch_size
-            max_unknown = max_silence_rate * batch_size
-            unknown_num = 0
+            # max_unknown = max_silence_rate * batch_size
+            # unknown_num = 0
             while (len(x_batch) < train_num) and (idx < n_train):
                 curr_path = files[idx]
                 label = os.path.dirname(curr_path)
@@ -72,8 +72,8 @@ def train_generator(files, batch_size, max_silence_rate):
                 if label == '_background_noise_':
                     continue
                 # unknown balance handling
-                if (label not in LABELS) and (unknown_num > max_unknown):
-                    continue
+                # if (label not in LABELS) and (unknown_num > max_unknown):
+                #     continue
                 rate, sample = wavfile.read(os.path.join(TRAIN_DIR, label, f_name))
                 sample = _pad_sample(sample)
                 # augmentation should be here
@@ -83,7 +83,7 @@ def train_generator(files, batch_size, max_silence_rate):
                 y = np.zeros(len(LABELS))
                 if label not in LABELS:
                     label = 'unknown'
-                    unknown_num += 1
+                    # unknown_num += 1
                 y[LABEL2ID[label]] = 1
                 y_batch.append(y)
             while len(x_batch) < batch_size:
