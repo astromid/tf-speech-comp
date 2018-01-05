@@ -21,9 +21,11 @@ BATCH_SIZE = int(args.batch_size)
 TOTAL = np.ceil(TEST_LEN / BATCH_SIZE).astype('int')
 LABELS = 'down go left no off on right silence stop unknown up yes'.split()
 ID2LABEL = {i: label for i, label in enumerate(LABELS)}
-
+TEST_PARAMS = {
+    'batch_size': BATCH_SIZE
+}
 #test_gen = test_generator(batch_size=BATCH_SIZE)
-test_seq = TestSequence(BATCH_SIZE)
+test_seq = TestSequence(TEST_PARAMS)
 model = load_model(MODEL_PATH)
 '''
 data = {

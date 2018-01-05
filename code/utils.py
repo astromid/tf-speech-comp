@@ -215,8 +215,12 @@ class TrainSequence(Sequence):
         label = os.path.dirname(file)
         f_name = os.path.basename(file)
         rate, sample = wavfile.read(os.path.join(TRAIN_DIR, label, f_name))
-        sample = self.__pad_sample(sample)
         # augmentation should be here
+        sample = self.__time_shift(sample)
+        sample = self.__speed_tune(sample)
+        sample = self.__pad_sample(sample)
+        if np.random.rand() < 0.5:
+            sample = self.__get_noised(sample)
         spect = librosa.feature.melspectrogram(sample, rate)
         spect = librosa.power_to_db(spect, ref=np.max)
         y = np.zeros(len(LABELS))
@@ -252,11 +256,11 @@ class TrainSequence(Sequence):
 
 class ValSequence(Sequence):
 
-    def __init__(self, files, noise_files, batch_size, silence_rate):
+    def __init__(self, files, noise_files, params):
         self.files = files
         self.noise_files = noise_files
-        self.full_batch_size = batch_size
-        self.silence_rate = silence_rate
+        self.full_batch_size = params['batch_size']
+        self.silence_rate = params['silence_rate']
         self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
 
     def __len__(self):
@@ -319,10 +323,10 @@ class ValSequence(Sequence):
 
 class TestSequence(Sequence):
 
-    def __init__(self, batch_size):
+    def __init__(self, params):
         self.files = [os.path.relpath(file, TEST_DIR) for file in
                       glob(os.path.join(TEST_DIR, '*wav'))]
-        self.batch_size = batch_size
+        self.batch_size = params['batch_size']
 
     def __len__(self):
         return np.ceil(len(self.files) / self.batch_size).astype('int')
