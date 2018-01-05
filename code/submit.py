@@ -42,8 +42,8 @@ preds = model.predict_generator(
     verbose=1,
     steps=len(test_seq)
 )
-idxs = np.argmax(preds, axis=1)
-labels = [ID2LABEL[id] for id in idxs]
+ids = np.argmax(preds, axis=1)
+labels = [ID2LABEL[id_] for id_ in ids]
 data = {
     'fname': test_seq.files,
     'label': labels

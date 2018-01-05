@@ -36,5 +36,5 @@ def palsol_model():
     model.compile(
         optimizer=opt,
         loss=losses.binary_crossentropy,
-        metrics=[categorical_accuracy])
+        metrics=['acc', categorical_accuracy])
     return model

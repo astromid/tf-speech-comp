@@ -331,7 +331,7 @@ class TestSequence(Sequence):
     def __getitem__(self, idx):
         file_batch = self.files[idx * self.batch_size:(idx + 1) * self.batch_size]
         x_batch = []
-        f_names = []
+        # f_names = []
         for file in file_batch:
             x_batch.append(self.__get_sample(file))
         x_batch = np.array(x_batch)
