@@ -194,7 +194,6 @@ class TrainSequence(Sequence):
     def __get_noised(self, sample):
         return sample
 
-    @staticmethod
     def __pad_sample(self, sample):
         n = len(sample)
         if n == L:
@@ -263,7 +262,6 @@ class ValSequence(Sequence):
         _, sample = wavfile.read(file)
         return self.__pad_sample(sample)
 
-    @staticmethod
     def __pad_sample(self, sample):
         n = len(sample)
         if n == L:
