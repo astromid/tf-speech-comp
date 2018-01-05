@@ -191,15 +191,15 @@ class TrainSequence(Sequence):
         return np.roll(sample, shift_)
 
     def __speed_tune(self, sample):
-        tune_ = np.random.uniform(1-self.speed_tune, 1+self.speed_tune)
-        return librosa.effects.time_stretch(sample, tune_)
+        rate_ = np.random.uniform(1-self.speed_tune, 1+self.speed_tune)
+        return librosa.effects.time_stretch(sample, rate_)
 
     def __get_noised(self, sample):
         noise_ = self.__get_silence
         volume_ = np.random.uniform(1-self.volume_tune, 1+self.volume_tune)
         noise_volume_ = np.random.uniform(0, self.noise_vol)
         noised_sample = volume_ * sample + noise_volume_ * noise_
-        return np.ceil(noised_sample)
+        return noised_sample
 
     def __pad_sample(self, sample):
         n = len(sample)
@@ -216,8 +216,12 @@ class TrainSequence(Sequence):
         f_name = os.path.basename(file)
         rate, sample = wavfile.read(os.path.join(TRAIN_DIR, label, f_name))
         # augmentation should be here
+        try:
+            sample = self.__speed_tune(sample)
+        except:
+            print(type(sample))
+            print(sample.dtype)
         sample = self.__time_shift(sample)
-        sample = self.__speed_tune(sample)
         sample = self.__pad_sample(sample)
         if np.random.rand() < 0.5:
             sample = self.__get_noised(sample)
