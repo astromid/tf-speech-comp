@@ -25,7 +25,8 @@ TRAIN_PARAMS = {
     'silence_rate': MAX_SILENCE_RATE,
     'time_shift': 0,
     'speed_tune': 0,
-    'volume_tune': 0
+    'volume_tune': 0,
+    'noise_vol': 0
 }
 os.makedirs(LOGS_PATH)
 

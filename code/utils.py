@@ -173,6 +173,7 @@ class TrainSequence(Sequence):
         self.time_shift = params['time_shift']
         self.speed_tune = params['speed_tune']
         self.volume_tune = params['volume_tune']
+        self.noise_vol = params['noise_vol']
         self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
 
     def __len__(self):
@@ -186,13 +187,19 @@ class TrainSequence(Sequence):
         return self.__pad_sample(sample)
 
     def __time_shift(self, sample):
-        return sample
+        shift_ = int(np.random.uniform(-self.time_shift, self.time_shift))
+        return np.roll(sample, shift_)
 
     def __speed_tune(self, sample):
-        return sample
+        tune_ = np.random.uniform(1-self.speed_tune, 1+self.speed_tune)
+        return librosa.effects.time_stretch(sample, tune_)
 
     def __get_noised(self, sample):
-        return sample
+        noise_ = self.__get_silence
+        volume_ = np.random.uniform(1-self.volume_tune, 1+self.volume_tune)
+        noise_volume_ = np.random.uniform(0, self.noise_vol)
+        noised_sample = volume_ * sample + noise_volume_ * noise_
+        return np.ceil(noised_sample)
 
     def __pad_sample(self, sample):
         n = len(sample)

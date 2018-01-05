@@ -35,6 +35,7 @@ def palsol_model():
     opt = optimizers.Adam()
     model.compile(
         optimizer=opt,
-        loss=losses.binary_crossentropy,
+        #loss=losses.binary_crossentropy,
+        loss=losses.categorical_crossentropy,
         metrics=['acc', categorical_accuracy])
     return model
