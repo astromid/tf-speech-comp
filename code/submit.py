@@ -48,8 +48,10 @@ for f_names, batch in tqdm(test_gen, total=TOTAL):
 '''
 preds = model.predict_generator(
     generator=test_seq,
-    verbose=1,
-    steps=len(test_seq)
+    steps=len(test_seq),
+    max_queue_size=20,
+    workers=2,
+    verbose=1
 )
 ids = np.argmax(preds, axis=1)
 labels = [ID2LABEL[id_] for id_ in ids]

@@ -28,6 +28,75 @@ def list_wav_files():
     return train_files, val_files, noise_files
 
 
+class AudioSequence(Sequence):
+
+    def __init__(self, params):
+        self.noise_files = self.__list_noise_files
+        self.params = params
+
+    def __len__(self):
+        return np.ceil(len(self.files) / self.batch_size).astype('int')
+
+    @property
+    def __list_val_files(self):
+        with open(VAL_LIST_PATH) as val_txt:
+            val_files = val_txt.readlines()
+        val_files = [os.path.normpath(file)[:-1] for file in val_files]
+        return val_files
+
+    @property
+    def __list_train_files(self):
+        all_files = [os.path.relpath(file, TRAIN_DIR) for file in
+                     glob(os.path.join(TRAIN_DIR, '*', '*wav'))]
+        val_files = self.__list_val_files
+        train_files = [file for file in all_files if file not in val_files]
+        return train_files
+
+    @property
+    def __list_noise_files(self):
+        noise_files = glob(os.path.join(TRAIN_DIR, '_background_noise_', '*wav'))
+        return noise_files
+
+    @property
+    def __list_test_files(self):
+        test_files = [os.path.relpath(file, TEST_DIR) for file in
+                      glob(os.path.join(TEST_DIR, '*wav'))]
+        return test_files
+
+    @staticmethod
+    def __pad_sample(sample):
+        n = len(sample)
+        if n == L:
+            return sample
+        elif n < L:
+            return np.pad(sample, (L - n, 0), 'constant', constant_values=0)
+        else:
+            begin = np.random.randint(0, n - L)
+            return sample[begin:begin + L]
+
+    @property
+    def __get_silence(self):
+        n = len(self.noise_files)
+        file = self.noise_files[np.random.randint(0, n)]
+        _, sample = wavfile.read(file)
+        return self.__pad_sample(sample)
+
+
+class TrainSequence2D(AudioSequence):
+
+    def __init__(self, params):
+        AudioSequence.__init__(params)
+        self.files = self.__list_train_files
+        self.full_batch_size = params['batch_size']
+        self.augment = params['augment']
+        self.silence_rate = params['silence_rate']
+        self.time_shift = params['time_shift']
+        self.speed_tune = params['speed_tune']
+        self.volume_tune = params['volume_tune']
+        self.noise_vol = params['noise_vol']
+        self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
+
+
 class TrainSequence(Sequence):
 
     def __init__(self, files, noise_files, params):
@@ -66,7 +135,8 @@ class TrainSequence(Sequence):
         noise_volume_ = np.random.uniform(0, self.noise_vol)
         return volume_ * sample + noise_volume_ * noise_
 
-    def __pad_sample(self, sample):
+    @staticmethod
+    def __pad_sample(sample):
         n = len(sample)
         if n == L:
             return sample
@@ -142,7 +212,8 @@ class ValSequence(Sequence):
         _, sample = wavfile.read(file)
         return self.__pad_sample(sample)
 
-    def __pad_sample(self, sample):
+    @staticmethod
+    def __pad_sample(sample):
         n = len(sample)
         if n == L:
             return sample

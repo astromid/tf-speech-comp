@@ -15,6 +15,7 @@ parser.add_argument('--speed', dest='speed_tune', default=0)
 parser.add_argument('--volume', dest='volume_tune', default=0)
 parser.add_argument('--noise', dest='noise_vol', default=0)
 parser.add_argument('--aug', dest='augment', default='yes')
+parser.add_argument('--balance', dest='balance', default='no')
 args = parser.parse_args()
 
 ROOT_DIR = '..'
@@ -29,7 +30,8 @@ TRAIN_PARAMS = {
     'time_shift': int(args.time_shift),
     'speed_tune': float(args.speed_tune),
     'volume_tune': float(args.volume_tune),
-    'noise_vol': float(args.noise_vol)
+    'noise_vol': float(args.noise_vol),
+    'balance': args.balance
 }
 os.makedirs(LOGS_PATH, exist_ok=True)
 
@@ -51,6 +53,7 @@ tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 
 reduce_cb = ReduceLROnPlateau(
     monitor='val_categorical_accuracy',
+    patience=5,
     verbose=1,
     min_lr=1e-5
 )
@@ -62,7 +65,9 @@ hist = model.fit_generator(
     verbose=1,
     callbacks=[check_cb, tb_cb, reduce_cb],
     validation_data=val_seq,
-    validation_steps=len(val_seq)
+    validation_steps=len(val_seq),
+    max_queue_size=20,
+    workers=2
 )
 
 model.save(os.path.join(MODEL_DIR, 'model.h5'))
