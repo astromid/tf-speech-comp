@@ -16,6 +16,7 @@ parser.add_argument('--time', dest='time_shift', default=0)
 parser.add_argument('--speed', dest='speed_tune', default=0)
 parser.add_argument('--volume', dest='volume_tune', default=0)
 parser.add_argument('--noise', dest='noise_vol', default=0)
+parser.add_argument('--aug', dest='augment', default='yes')
 args = parser.parse_args()
 
 ROOT_DIR = '..'
@@ -25,6 +26,7 @@ EPOCHS = int(args.epochs)
 BATCH_SIZE = int(args.batch_size)
 TRAIN_PARAMS = {
     'batch_size': BATCH_SIZE,
+    'augment': args.augment,
     'silence_rate': float(args.max_silence_rate),
     'time_shift': int(args.time_shift),
     'speed_tune': float(args.speed_tune),

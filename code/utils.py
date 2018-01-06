@@ -169,6 +169,7 @@ class TrainSequence(Sequence):
         self.files = files
         self.noise_files = noise_files
         self.full_batch_size = params['batch_size']
+        self.augment = params['augment']
         self.silence_rate = params['silence_rate']
         self.time_shift = params['time_shift']
         self.speed_tune = params['speed_tune']
@@ -192,15 +193,13 @@ class TrainSequence(Sequence):
 
     def __speed_tune(self, sample):
         rate_ = np.random.uniform(1-self.speed_tune, 1+self.speed_tune)
-        sample = librosa.effects.time_stretch(sample.astype('float32'), rate_)
-        return sample.astype('int16')
+        return librosa.effects.time_stretch(sample.astype('float32'), rate_)
 
     def __get_noised(self, sample):
         noise_ = self.__get_silence
         volume_ = np.random.uniform(1-self.volume_tune, 1+self.volume_tune)
         noise_volume_ = np.random.uniform(0, self.noise_vol)
-        noised_sample = volume_ * sample + noise_volume_ * noise_
-        return noised_sample.astype('int16')
+        return volume_ * sample + noise_volume_ * noise_
 
     def __pad_sample(self, sample):
         n = len(sample)
@@ -217,11 +216,15 @@ class TrainSequence(Sequence):
         f_name = os.path.basename(file)
         rate, sample = wavfile.read(os.path.join(TRAIN_DIR, label, f_name))
         # augmentation should be here
-        sample = self.__time_shift(sample)
-        sample = self.__speed_tune(sample)
-        sample = self.__pad_sample(sample)
-        if np.random.rand() < 0.5:
-            sample = self.__get_noised(sample)
+        if self.augment is 'yes':
+            sample = self.__time_shift(sample)
+            sample = self.__speed_tune(sample)
+            sample = self.__pad_sample(sample)
+            if np.random.rand() < 0.5:
+                sample = self.__get_noised(sample)
+            sample = sample.astype('int16')
+        else:
+            sample = self.__pad_sample(sample)
         spect = librosa.feature.melspectrogram(sample, rate)
         spect = librosa.power_to_db(spect, ref=np.max)
         y = np.zeros(len(LABELS))
