@@ -1,9 +1,7 @@
-import numpy as np
 import os
 import argparse
 import models
-from utils import list_wav_files, train_generator, val_generator
-from utils import TrainSequence, ValSequence
+from utils import list_wav_files, TrainSequence, ValSequence
 from tensorflow.python.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
 from tensorflow.python.keras.callbacks import TensorBoard
 
@@ -20,8 +18,8 @@ parser.add_argument('--aug', dest='augment', default='yes')
 args = parser.parse_args()
 
 ROOT_DIR = '..'
-MODELS_DIR = os.path.join(ROOT_DIR, 'models')
-LOGS_PATH = os.path.join(MODELS_DIR, args.name, 'logs')
+MODEL_DIR = os.path.join(ROOT_DIR, 'models', args.name)
+LOGS_PATH = os.path.join(MODEL_DIR, 'logs')
 EPOCHS = int(args.epochs)
 BATCH_SIZE = int(args.batch_size)
 TRAIN_PARAMS = {
@@ -38,27 +36,34 @@ os.makedirs(LOGS_PATH, exist_ok=True)
 train_files, val_files, noise_files = list_wav_files()
 n_train = len(train_files)
 n_val = len(val_files)
-#train_gen = train_generator(train_files, BATCH_SIZE, MAX_SILENCE_RATE)
-#val_gen = val_generator(val_files, BATCH_SIZE, MAX_SILENCE_RATE)
 train_seq = TrainSequence(train_files, noise_files, TRAIN_PARAMS)
 val_seq = ValSequence(val_files, noise_files, TRAIN_PARAMS)
 model = models.palsol_model()
 
-# reduce_cb = ReduceLROnPlateau(monitor='val_acc')
-# check_cb = ModelCheckpoint()
+check_cb = ModelCheckpoint(
+    filepath=os.path.join(MODEL_DIR, 'model-best.h5'),
+    monitor='val_categorical_accuracy',
+    verbose=1,
+    save_best_only=True
+)
+
 tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
+
+reduce_cb = ReduceLROnPlateau(
+    monitor='val_categorical_accuracy',
+    verbose=1,
+    min_lr=1e-5
+)
 
 hist = model.fit_generator(
     generator=train_seq,
-    # steps_per_epoch=np.ceil((n_train - 6) / BATCH_SIZE).astype('int'),
     steps_per_epoch=len(train_seq),
     epochs=EPOCHS,
     verbose=1,
-    callbacks=[tb_cb],
+    callbacks=[check_cb, tb_cb, reduce_cb],
     validation_data=val_seq,
     validation_steps=len(val_seq)
-    # validation_steps=np.ceil(n_val / BATCH_SIZE).astype('int')
 )
 
-model.save(os.path.join(MODELS_DIR, args.name, 'model.h5'))
+model.save(os.path.join(MODEL_DIR, 'model.h5'))
 print('Model saved successfully')
