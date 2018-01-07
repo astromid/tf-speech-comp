@@ -41,6 +41,7 @@ TEST_PARAMS = {
     'speed_tune': float(args.speed_tune),
     'volume_tune': float(args.volume_tune),
     'noise_vol': float(args.noise_vol),
+    'augment': 'no'
 }
 model = load_model(MODEL_PATH)
 '''
@@ -53,25 +54,23 @@ preds = model.predict_generator(
     verbose=1
 )
 '''
-if N_AUG == 0:
-    TEST_PARAMS['augment'] = 'no'
-    test_seq = TestSequence2D(TEST_PARAMS)
-    preds = model.predict_generator(
-        generator=test_seq,
-        steps=len(test_seq),
-        max_queue_size=10,
-        workers=2,
-        verbose=1
-    )
-    ids = np.argmax(preds, axis=1)
-else:
+test_seq = TestSequence2D(TEST_PARAMS)
+preds = model.predict_generator(
+    generator=test_seq,
+    steps=len(test_seq),
+    max_queue_size=10,
+    workers=2,
+    verbose=1
+)
+ids = np.argmax(preds, axis=1)
+if N_AUG != 0:
     TEST_PARAMS['augment'] = 'yes'
-    ids_arr = []
+    ids_arr = [ids]
     for _ in range(N_AUG):
-        test_seq = TestSequence2D(TEST_PARAMS)
+        test_seq_aug = TestSequence2D(TEST_PARAMS)
         preds = model.predict_generator(
-            generator=test_seq,
-            steps=len(test_seq),
+            generator=test_seq_aug,
+            steps=len(test_seq_aug),
             max_queue_size=10,
             workers=2,
             verbose=1

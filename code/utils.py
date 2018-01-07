@@ -36,7 +36,7 @@ class AudioSequence(Sequence):
         self.files = None
         self.samples = None
         self.labels = None
-        self.noise_samples = self.__load_noise_samples
+        self.noise_samples = self._load_noise_samples
         self.eps = None
         self.full_batch_size = params['batch_size']
         self.batch_size = params['batch_size']
@@ -53,14 +53,14 @@ class AudioSequence(Sequence):
         x = self.samples[idx * self.batch_size:(idx + 1) * self.batch_size]
         y = self.labels[idx * self.batch_size:(idx + 1) * self.batch_size]
         for _ in range(self.full_batch_size - self.batch_size):
-            x.append(self.__get_silence)
+            x.append(self._get_silence)
             y.append('silence')
         spect_batch = []
         for sample in x:
             if self.augment is 'yes':
-                sample = self.__augment_sample(sample)
+                sample = self._augment_sample(sample)
             else:
-                sample = self.__pad_sample(sample)
+                sample = self._pad_sample(sample)
             spect = librosa.feature.melspectrogram(sample, L)
             spect = librosa.power_to_db(spect, ref=np.max)
             spect_batch.append(spect)
@@ -75,28 +75,28 @@ class AudioSequence(Sequence):
         return spect_batch, ohe_batch
 
     @property
-    def __list_val_files(self):
+    def _list_val_files(self):
         with open(VAL_LIST_PATH) as val_txt:
             val_files = val_txt.readlines()
         val_files = [os.path.normpath(file)[:-1] for file in val_files]
         return val_files
 
     @property
-    def __list_train_files(self):
+    def _list_train_files(self):
         all_files = [os.path.relpath(file, TRAIN_DIR) for file in
                      glob(os.path.join(TRAIN_DIR, '*', '*wav'))]
-        val_files = self.__list_val_files
+        val_files = self._list_val_files
         train_files = [file for file in all_files if file not in val_files]
         return train_files
 
     @property
-    def __list_test_files(self):
+    def _list_test_files(self):
         test_files = [os.path.relpath(file, TEST_DIR) for file in
                       glob(os.path.join(TEST_DIR, '*wav'))]
         return test_files
 
     @property
-    def __load_noise_samples(self):
+    def _load_noise_samples(self):
         noise_files = glob(os.path.join(TRAIN_DIR, '_background_noise_', '*wav'))
         noise_samples = []
         for file in noise_files:
@@ -105,7 +105,7 @@ class AudioSequence(Sequence):
         return noise_samples
 
     @property
-    def __load_samples(self):
+    def _load_samples(self):
         samples = []
         labels = []
         for file in tqdm(self.files):
@@ -119,7 +119,7 @@ class AudioSequence(Sequence):
         return samples, labels
 
     @staticmethod
-    def __pad_sample(sample):
+    def _pad_sample(sample):
         n = len(sample)
         if n == L:
             return sample
@@ -130,34 +130,34 @@ class AudioSequence(Sequence):
             return sample[begin:begin + L]
 
     @property
-    def __get_silence(self):
+    def _get_silence(self):
         n = len(self.noise_samples)
         sample = self.noise_samples[np.random.randint(0, n)]
-        return self.__pad_sample(sample)
+        return self._pad_sample(sample)
 
-    def __time_shift(self, sample):
+    def _time_shift(self, sample):
         shift_ = int(np.random.uniform(-self.time_shift, self.time_shift))
         return np.roll(sample, shift_)
 
-    def __speed_tune(self, sample):
+    def _speed_tune(self, sample):
         rate_ = np.random.uniform(1-self.speed_tune, 1+self.speed_tune)
         return librosa.effects.time_stretch(sample.astype('float32'), rate_)
 
-    def __get_noised(self, sample):
-        noise_ = self.__get_silence
+    def _get_noised(self, sample):
+        noise_ = self._get_silence
         volume_ = np.random.uniform(1-self.volume_tune, 1+self.volume_tune)
         noise_volume_ = np.random.uniform(0, self.noise_vol)
         return volume_ * sample + noise_volume_ * noise_
 
-    def __augment_sample(self, sample):
+    def _augment_sample(self, sample):
         flags = np.random.rand(3)
         if flags[0] < 0.5:
-            sample = self.__time_shift(sample)
+            sample = self._time_shift(sample)
         if flags[1] < 0.5:
-            sample = self.__speed_tune(sample)
-        sample = self.__pad_sample(sample)
+            sample = self._speed_tune(sample)
+        sample = self._pad_sample(sample)
         if flags[2] < 0.5:
-            sample = self.__get_noised(sample)
+            sample = self._get_noised(sample)
         return sample.astype('int16')
 
     def on_epoch_end(self):
@@ -168,8 +168,8 @@ class TrainSequence2D(AudioSequence):
 
     def __init__(self, params):
         super().__init__(params)
-        self.files = self.__list_train_files
-        self.samples, self.labels = self.__load_samples
+        self.files = self._list_train_files
+        self.samples, self.labels = self._load_samples
         self.silence_rate = params['silence_rate']
         self.eps = params['eps']
         self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
@@ -179,8 +179,8 @@ class ValSequence2D(AudioSequence):
 
     def __init__(self, params):
         super().__init__(params)
-        self.files = self.__list_val_files
-        self.samples, self.labels = self.__load_samples
+        self.files = self._list_val_files
+        self.samples, self.labels = self._load_samples
         self.silence_rate = params['silence_rate']
         self.eps = params['eps']
         self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
@@ -190,7 +190,7 @@ class TestSequence2D(AudioSequence):
 
     def __init__(self, params):
         super().__init__(params)
-        self.files = self.__list_test_files
+        self.files = self._list_test_files
 
     def __getitem__(self, idx):
         file_batch = self.files[idx * self.batch_size:(idx + 1) * self.batch_size]
@@ -202,9 +202,9 @@ class TestSequence2D(AudioSequence):
         spect_batch = []
         for sample in x:
             if self.augment is 'yes':
-                sample = self.__augment_sample(sample)
+                sample = self._augment_sample(sample)
             else:
-                sample = self.__pad_sample(sample)
+                sample = self._pad_sample(sample)
             spect = librosa.feature.melspectrogram(sample, L)
             spect = librosa.power_to_db(spect, ref=np.max)
             spect_batch.append(spect)
