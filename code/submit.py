@@ -64,13 +64,12 @@ preds = model.predict_generator(
 )
 ids = np.argmax(preds, axis=1)
 if N_AUG != 0:
-    TEST_PARAMS['augment'] = 'yes'
+    test_seq.augment = 'yes'
     ids_arr = [ids]
     for _ in range(N_AUG):
-        test_seq_aug = TestSequence2D(TEST_PARAMS)
         preds = model.predict_generator(
-            generator=test_seq_aug,
-            steps=len(test_seq_aug),
+            generator=test_seq,
+            steps=len(test_seq),
             max_queue_size=10,
             workers=2,
             verbose=1

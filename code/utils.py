@@ -5,6 +5,7 @@ from glob import glob
 from scipy.io import wavfile
 from tensorflow.python.keras.utils import Sequence
 from tqdm import tqdm
+from sklearn.utils.class_weight import compute_sample_weight
 
 # SEED = 12017952
 # np.random.seed(SEED)
@@ -45,6 +46,7 @@ class AudioSequence(Sequence):
         self.speed_tune = params['speed_tune']
         self.volume_tune = params['volume_tune']
         self.noise_vol = params['noise_vol']
+        self.balance = params['balance']
 
     def __len__(self):
         return np.ceil(len(self.files) / self.batch_size).astype('int')
@@ -55,6 +57,7 @@ class AudioSequence(Sequence):
         for _ in range(self.full_batch_size - self.batch_size):
             x.append(self._get_silence)
             y.append('silence')
+        label_ids = [LABEL2ID[label] for label in y]
         spect_batch = []
         for sample in x:
             if self.augment is 'yes':
@@ -65,14 +68,18 @@ class AudioSequence(Sequence):
             spect = librosa.power_to_db(spect, ref=np.max)
             spect_batch.append(spect)
         ohe_batch = []
-        for label in y:
+        for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)
-            ohe_y[LABEL2ID[label]] = 1 - self.eps
+            ohe_y[id_] = 1 - self.eps
             ohe_batch.append(ohe_y)
         spect_batch = np.array(spect_batch)
         ohe_batch = np.array(ohe_batch)
         spect_batch = spect_batch.reshape(spect_batch.shape + (1,))
-        return spect_batch, ohe_batch
+        if self.balance is 'no':
+            return spect_batch, ohe_batch
+        else:
+            weights = compute_sample_weight('balanced', label_ids)
+            return spect_batch, ohe_batch, weights
 
     @property
     def _list_val_files(self):
@@ -108,7 +115,7 @@ class AudioSequence(Sequence):
     def _load_samples(self):
         samples = []
         labels = []
-        for file in tqdm(self.files):
+        for file in tqdm(self.files, desc='Loading files'):
             label = os.path.dirname(file)
             f_name = os.path.basename(file)
             rate, sample = wavfile.read(os.path.join(TRAIN_DIR, label, f_name))
@@ -191,7 +198,9 @@ class TestSequence2D(AudioSequence):
     def __init__(self, params):
         super().__init__(params)
         self.files = self._list_test_files
+        self.samples = self._load_samples
 
+    '''
     def __getitem__(self, idx):
         file_batch = self.files[idx * self.batch_size:(idx + 1) * self.batch_size]
         x = []
@@ -211,6 +220,31 @@ class TestSequence2D(AudioSequence):
         spect_batch = np.array(spect_batch)
         spect_batch = spect_batch.reshape(spect_batch.shape + (1,))
         return spect_batch
+    '''
+
+    def __getitem__(self, idx):
+        x = self.samples[idx * self.batch_size:(idx + 1) * self.batch_size]
+        spect_batch = []
+        for sample in x:
+            if self.augment is 'yes':
+                sample = self._augment_sample(sample)
+            else:
+                sample = self._pad_sample(sample)
+            spect = librosa.feature.melspectrogram(sample, L)
+            spect = librosa.power_to_db(spect, ref=np.max)
+            spect_batch.append(spect)
+        spect_batch = np.array(spect_batch)
+        spect_batch = spect_batch.reshape(spect_batch.shape + (1,))
+        return spect_batch
+
+    @property
+    def _load_samples(self):
+        samples = []
+        for file in tqdm(self.files, desc='Loading files'):
+            f_name = os.path.basename(file)
+            rate, sample = wavfile.read(os.path.join(TEST_DIR, f_name))
+            samples.append(sample)
+        return samples
 
 
 '''
