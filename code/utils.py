@@ -118,7 +118,7 @@ class AudioSequence(Sequence):
             if label not in LABELS:
                 label = 'unknown'
             labels.append(label)
-        return np.array(samples), np.array(labels)
+        return samples, labels
 
     @staticmethod
     def _pad_sample(sample):
@@ -178,9 +178,9 @@ class TrainSequence2D(AudioSequence):
         self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
 
     def on_epoch_end(self):
-        p = np.random.permutation(len(self.files))
-        self.samples = self.samples[p]
-        self.labels = self.labels[p]
+        data = list(zip(self.samples, self.labels))
+        np.random.shuffle(data)
+        self.samples, self.labels = zip(*data)
 
 
 class ValSequence2D(AudioSequence):
