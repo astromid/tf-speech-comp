@@ -3,28 +3,27 @@ import pandas as pd
 import os
 import argparse
 from tensorflow.python.keras.models import load_model
-# from utils import TestSequence
 from utils import TestSequence2D
 from scipy.stats import mode
-# from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', dest='name')
+parser.add_argument('--best', dest='best', default=0)
 parser.add_argument('--batch', dest='batch_size')
-parser.add_argument('--best', dest='best', default='no')
+parser.add_argument('--silence', dest='silence_rate', default=0)
+parser.add_argument('--aug', dest='augment', default=0)
 parser.add_argument('--time', dest='time_shift', default=0)
 parser.add_argument('--speed', dest='speed_tune', default=0)
 parser.add_argument('--volume', dest='volume_tune', default=0)
 parser.add_argument('--noise', dest='noise_vol', default=0)
-parser.add_argument('--aug', dest='augment', default=0)
+
 args = parser.parse_args()
 
-# TEST_LEN = 158538
 ROOT_DIR = '..'
 MODELS_DIR = os.path.join(ROOT_DIR, 'models')
 SUB_DIR = os.path.join(ROOT_DIR, 'subs')
 
-if args.best is 'no':
+if int(args.best) == 0:
     MODEL_PATH = os.path.join(MODELS_DIR, args.name, 'model.h5')
     SUB_PATH = os.path.join(SUB_DIR, args.name + '.csv')
 else:
@@ -37,23 +36,13 @@ LABELS = 'down go left no off on right silence stop unknown up yes'.split()
 ID2LABEL = {i: label for i, label in enumerate(LABELS)}
 TEST_PARAMS = {
     'batch_size': BATCH_SIZE,
+    'augment': 0,
     'time_shift': int(args.time_shift),
     'speed_tune': float(args.speed_tune),
     'volume_tune': float(args.volume_tune),
     'noise_vol': float(args.noise_vol),
-    'augment': 'no'
 }
 model = load_model(MODEL_PATH)
-'''
-test_seq = TestSequence(TEST_PARAMS)
-preds = model.predict_generator(
-    generator=test_seq,
-    steps=len(test_seq),
-    max_queue_size=20,
-    workers=1,
-    verbose=1
-)
-'''
 test_seq = TestSequence2D(TEST_PARAMS)
 preds = model.predict_generator(
     generator=test_seq,
@@ -64,7 +53,7 @@ preds = model.predict_generator(
 )
 ids = np.argmax(preds, axis=1)
 if N_AUG != 0:
-    test_seq.augment = 'yes'
+    test_seq.augment = 1
     ids_arr = [ids]
     for _ in range(N_AUG):
         preds = model.predict_generator(

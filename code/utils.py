@@ -60,10 +60,10 @@ class AudioSequence(Sequence):
         label_ids = [LABEL2ID[label] for label in y]
         spect_batch = []
         for sample in x:
-            if self.augment is 'yes':
-                sample = self._augment_sample(sample)
-            else:
+            if self.augment == 0:
                 sample = self._pad_sample(sample)
+            else:
+                sample = self._augment_sample(sample)
             spect = librosa.feature.melspectrogram(sample, L)
             spect = librosa.power_to_db(spect, ref=np.max)
             spect_batch.append(spect)
@@ -75,7 +75,7 @@ class AudioSequence(Sequence):
         spect_batch = np.array(spect_batch)
         ohe_batch = np.array(ohe_batch)
         spect_batch = spect_batch.reshape(spect_batch.shape + (1,))
-        if self.balance is 'no':
+        if self.balance == 0:
             return spect_batch, ohe_batch
         else:
             weights = compute_sample_weight('balanced', label_ids)
@@ -183,6 +183,11 @@ class TrainSequence2D(AudioSequence):
         self.balance = params['balance']
         self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
 
+    def on_epoch_end(self):
+        p = np.random.permutation(len(self.files))
+        self.samples = self.samples[p]
+        self.labels = self.labels[p]
+
 
 class ValSequence2D(AudioSequence):
 
@@ -204,36 +209,14 @@ class TestSequence2D(AudioSequence):
         self.samples = self._load_samples
         self.batch_size = params['batch_size']
 
-    '''
-    def __getitem__(self, idx):
-        file_batch = self.files[idx * self.batch_size:(idx + 1) * self.batch_size]
-        x = []
-        for file in file_batch:
-            f_name = os.path.basename(file)
-            _, sample = wavfile.read(os.path.join(TEST_DIR, f_name))
-            x.append(sample)
-        spect_batch = []
-        for sample in x:
-            if self.augment is 'yes':
-                sample = self._augment_sample(sample)
-            else:
-                sample = self._pad_sample(sample)
-            spect = librosa.feature.melspectrogram(sample, L)
-            spect = librosa.power_to_db(spect, ref=np.max)
-            spect_batch.append(spect)
-        spect_batch = np.array(spect_batch)
-        spect_batch = spect_batch.reshape(spect_batch.shape + (1,))
-        return spect_batch
-    '''
-
     def __getitem__(self, idx):
         x = self.samples[idx * self.batch_size:(idx + 1) * self.batch_size]
         spect_batch = []
         for sample in x:
-            if self.augment is 'yes':
-                sample = self._augment_sample(sample)
-            else:
+            if self.augment == 0:
                 sample = self._pad_sample(sample)
+            else:
+                sample = self._augment_sample(sample)
             spect = librosa.feature.melspectrogram(sample, L)
             spect = librosa.power_to_db(spect, ref=np.max)
             spect_batch.append(spect)

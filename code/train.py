@@ -1,23 +1,22 @@
 import os
 import argparse
 import models
-# from utils import list_wav_files, TrainSequence, ValSequence
 from utils import TrainSequence2D, ValSequence2D
 from tensorflow.python.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
 from tensorflow.python.keras.callbacks import TensorBoard
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch', dest='batch_size')
-parser.add_argument('--silence', dest='max_silence_rate', default=0.2)
-parser.add_argument('--epochs', dest='epochs')
 parser.add_argument('--name', dest='name')
+parser.add_argument('--epochs', dest='epochs')
+parser.add_argument('--batch', dest='batch_size')
+parser.add_argument('--balance', dest='balance', default=0)
+parser.add_argument('--eps', dest='eps', default=0)
+parser.add_argument('--silence', dest='silence_rate', default=0)
+parser.add_argument('--aug', dest='augment', default=0)
 parser.add_argument('--time', dest='time_shift', default=0)
 parser.add_argument('--speed', dest='speed_tune', default=0)
 parser.add_argument('--volume', dest='volume_tune', default=0)
 parser.add_argument('--noise', dest='noise_vol', default=0)
-parser.add_argument('--aug', dest='augment', default='no')
-parser.add_argument('--balance', dest='balance', default='no')
-parser.add_argument('--eps', dest='eps', default=0)
 args = parser.parse_args()
 
 ROOT_DIR = '..'
@@ -27,20 +26,18 @@ EPOCHS = int(args.epochs)
 BATCH_SIZE = int(args.batch_size)
 TRAIN_PARAMS = {
     'batch_size': BATCH_SIZE,
-    'augment': args.augment,
-    'silence_rate': float(args.max_silence_rate),
+    'balance': int(args.balance),
+    'eps': float(args.eps),
+    'silence_rate': float(args.silence_rate),
+    'augment': int(args.augment),
     'time_shift': int(args.time_shift),
     'speed_tune': float(args.speed_tune),
     'volume_tune': float(args.volume_tune),
     'noise_vol': float(args.noise_vol),
-    'balance': args.balance,
-    'eps': float(args.eps)
 }
 os.makedirs(LOGS_PATH, exist_ok=True)
 
 # train_files, val_files, noise_files = list_wav_files()
-# n_train = len(train_files)
-# n_val = len(val_files)
 # train_seq = TrainSequence(train_files, noise_files, TRAIN_PARAMS)
 # val_seq = ValSequence(val_files, noise_files, TRAIN_PARAMS)
 train_seq = TrainSequence2D(TRAIN_PARAMS)
