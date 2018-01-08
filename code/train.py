@@ -70,7 +70,7 @@ hist = model.fit_generator(
     validation_data=val_seq,
     validation_steps=len(val_seq),
     max_queue_size=20,
-    workers=2
+    workers=1
 )
 model.save(os.path.join(MODEL_DIR, 'model.h5'))
 print('Model saved successfully')

@@ -49,8 +49,8 @@ test_seq = TestSequence(TEST_PARAMS)
 preds = model.predict_generator(
     generator=test_seq,
     steps=len(test_seq),
-    max_queue_size=10,
-    workers=2,
+    max_queue_size=20,
+    workers=1,
     verbose=1
 )
 '''
@@ -59,7 +59,7 @@ preds = model.predict_generator(
     generator=test_seq,
     steps=len(test_seq),
     max_queue_size=20,
-    workers=2,
+    workers=1,
     verbose=1
 )
 ids = np.argmax(preds, axis=1)
@@ -71,7 +71,7 @@ if N_AUG != 0:
             generator=test_seq,
             steps=len(test_seq),
             max_queue_size=20,
-            workers=2,
+            workers=1,
             verbose=1
         )
         ids_arr.append(np.argmax(preds, axis=1))
