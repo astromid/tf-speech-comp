@@ -34,19 +34,19 @@ def list_wav_files():
 class AudioSequence(Sequence):
 
     def __init__(self, params):
-        self.files = None
-        self.samples = None
-        self.labels = None
+        # self.files = None
+        # self.samples = None
+        # self.labels = None
         self.noise_samples = self._load_noise_samples
-        self.eps = None
+        # self.eps = None
         self.full_batch_size = params['batch_size']
-        self.batch_size = params['batch_size']
+        # self.batch_size = params['batch_size']
         self.augment = params['augment']
         self.time_shift = params['time_shift']
         self.speed_tune = params['speed_tune']
         self.volume_tune = params['volume_tune']
         self.noise_vol = params['noise_vol']
-        self.balance = params['balance']
+        # self.balance = params['balance']
 
     def __len__(self):
         return np.ceil(len(self.files) / self.batch_size).astype('int')
@@ -109,6 +109,7 @@ class AudioSequence(Sequence):
         for file in noise_files:
             _, sample = wavfile.read(file)
             noise_samples.append(sample)
+        noise_samples.append(np.zeros(L))
         return noise_samples
 
     @property
@@ -165,7 +166,7 @@ class AudioSequence(Sequence):
         sample = self._pad_sample(sample)
         if flags[2] < 0.5:
             sample = self._get_noised(sample)
-        return sample.astype('int16')
+        return sample
 
     def on_epoch_end(self):
         pass
@@ -179,6 +180,7 @@ class TrainSequence2D(AudioSequence):
         self.samples, self.labels = self._load_samples
         self.silence_rate = params['silence_rate']
         self.eps = params['eps']
+        self.balance = params['balance']
         self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
 
 
@@ -190,6 +192,7 @@ class ValSequence2D(AudioSequence):
         self.samples, self.labels = self._load_samples
         self.silence_rate = params['silence_rate']
         self.eps = params['eps']
+        self.balance = params['balance']
         self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
 
 
@@ -199,6 +202,7 @@ class TestSequence2D(AudioSequence):
         super().__init__(params)
         self.files = self._list_test_files
         self.samples = self._load_samples
+        self.batch_size = params['batch_size']
 
     '''
     def __getitem__(self, idx):

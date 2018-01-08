@@ -69,7 +69,7 @@ hist = model.fit_generator(
     callbacks=[check_cb, tb_cb, reduce_cb],
     validation_data=val_seq,
     validation_steps=len(val_seq),
-    max_queue_size=10,
+    max_queue_size=20,
     workers=2
 )
 model.save(os.path.join(MODEL_DIR, 'model.h5'))

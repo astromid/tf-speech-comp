@@ -58,7 +58,7 @@ test_seq = TestSequence2D(TEST_PARAMS)
 preds = model.predict_generator(
     generator=test_seq,
     steps=len(test_seq),
-    max_queue_size=10,
+    max_queue_size=20,
     workers=2,
     verbose=1
 )
@@ -70,7 +70,7 @@ if N_AUG != 0:
         preds = model.predict_generator(
             generator=test_seq,
             steps=len(test_seq),
-            max_queue_size=10,
+            max_queue_size=20,
             workers=2,
             verbose=1
         )
