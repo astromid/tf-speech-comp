@@ -8,7 +8,7 @@ from tensorflow.python.keras.metrics import categorical_accuracy
 N_CLASS = 12
 
 
-def palsol_model():
+def palsol():
     i = Input(shape=(128, 32, 1))
     norm_i = BatchNormalization()(i)
 
@@ -39,3 +39,6 @@ def palsol_model():
         loss=losses.categorical_crossentropy,
         metrics=[categorical_accuracy])
     return model
+
+def seresnet3():
+    pass

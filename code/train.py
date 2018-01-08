@@ -42,7 +42,7 @@ os.makedirs(LOGS_PATH, exist_ok=True)
 # val_seq = ValSequence(val_files, noise_files, TRAIN_PARAMS)
 train_seq = TrainSequence2D(TRAIN_PARAMS)
 val_seq = ValSequence2D(TRAIN_PARAMS)
-model = models.palsol_model()
+model = models.palsol()
 
 check_cb = ModelCheckpoint(
     filepath=os.path.join(MODEL_DIR, 'model-best.h5'),
@@ -54,8 +54,7 @@ tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 reduce_cb = ReduceLROnPlateau(
     monitor='val_categorical_accuracy',
     patience=5,
-    verbose=1,
-    min_lr=1e-6
+    verbose=1
 )
 
 hist = model.fit_generator(
@@ -67,7 +66,7 @@ hist = model.fit_generator(
     validation_data=val_seq,
     validation_steps=len(val_seq),
     max_queue_size=20,
-    workers=1
+    workers=2
 )
 model.save(os.path.join(MODEL_DIR, 'model.h5'))
 print('Model saved successfully')
