@@ -34,19 +34,13 @@ def list_wav_files():
 class AudioSequence(Sequence):
 
     def __init__(self, params):
-        # self.files = None
-        # self.samples = None
-        # self.labels = None
         self.noise_samples = self._load_noise_samples
-        # self.eps = None
         self.full_batch_size = params['batch_size']
-        # self.batch_size = params['batch_size']
         self.augment = params['augment']
         self.time_shift = params['time_shift']
         self.speed_tune = params['speed_tune']
         self.volume_tune = params['volume_tune']
         self.noise_vol = params['noise_vol']
-        # self.balance = params['balance']
 
     def __len__(self):
         return np.ceil(len(self.files) / self.batch_size).astype('int')
@@ -124,7 +118,7 @@ class AudioSequence(Sequence):
             if label not in LABELS:
                 label = 'unknown'
             labels.append(label)
-        return samples, labels
+        return np.array(samples), np.array(labels)
 
     @staticmethod
     def _pad_sample(sample):
@@ -207,7 +201,7 @@ class TestSequence2D(AudioSequence):
         super().__init__(params)
         self.files = self._list_test_files
         self.samples = self._load_samples
-        self.batch_size = params['batch_size']
+        self.batch_size = self.full_batch_size
 
     def __getitem__(self, idx):
         x = self.samples[idx * self.batch_size:(idx + 1) * self.batch_size]
