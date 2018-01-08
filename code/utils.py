@@ -181,6 +181,8 @@ class TrainSequence2D(AudioSequence):
         data = list(zip(self.samples, self.labels))
         np.random.shuffle(data)
         self.samples, self.labels = zip(*data)
+        self.samples = list(self.samples)
+        self.labels = list(self.labels)
 
 
 class ValSequence2D(AudioSequence):
