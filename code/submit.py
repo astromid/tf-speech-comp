@@ -13,7 +13,7 @@ parser.add_argument('--batch', dest='batch_size')
 parser.add_argument('--aug', dest='augment', default=0)
 parser.add_argument('--time', dest='time_shift', default=0)
 parser.add_argument('--speed', dest='speed_tune', default=0)
-parser.add_argument('--volume', dest='volume_tune', default=0)
+parser.add_argument('--vol', dest='volume_tune', default=0)
 parser.add_argument('--noise', dest='noise_vol', default=0)
 
 args = parser.parse_args()
@@ -46,8 +46,6 @@ test_seq = TestSequence2D(TEST_PARAMS)
 preds = model.predict_generator(
     generator=test_seq,
     steps=len(test_seq),
-    max_queue_size=20,
-    workers=1,
     verbose=1
 )
 ids = np.argmax(preds, axis=1)
@@ -58,8 +56,6 @@ if N_AUG != 0:
         preds = model.predict_generator(
             generator=test_seq,
             steps=len(test_seq),
-            max_queue_size=20,
-            workers=1,
             verbose=1
         )
         ids_arr.append(np.argmax(preds, axis=1))
