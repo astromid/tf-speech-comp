@@ -48,14 +48,14 @@ class SeResNet3:
         i = Input(shape=(128, 32, 1))
         norm_i = BatchNormalization()(i)
 
-        conv1 = Conv2D(filters=16, kernel_size=(3, 3))(norm_i)
+        conv1 = Conv2D(filters=16, kernel_size=(3, 3), padding='same')(norm_i)
         bn1 = BatchNormalization()(conv1)
         relu1 = relu(bn1)
         res1 = self.resblock(z=relu1, n_in=16, n_out=16)
         pool1 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(res1)
         drp1 = Dropout(rate=0.1)(pool1)
 
-        conv2 = Conv2D(filters=32, kernel_size=(3, 3))(drp1)
+        conv2 = Conv2D(filters=32, kernel_size=(3, 3), padding='same')(drp1)
         bn2 = BatchNormalization()(conv2)
         relu2 = relu(bn2)
         res2 = self.resblock(z=relu2, n_in=32, n_out=32)
@@ -63,7 +63,7 @@ class SeResNet3:
         pool2 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(res3)
         drp2 = Dropout(rate=0.2)(pool2)
 
-        conv3 = Conv2D(filters=64, kernel_size=(3, 3))(drp2)
+        conv3 = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(drp2)
         bn3 = BatchNormalization()(conv3)
         relu3 = relu(bn3)
         res4 = self.resblock(z=relu3, n_in=64, n_out=64)
@@ -71,14 +71,14 @@ class SeResNet3:
         pool3 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(res5)
         drp3 = Dropout(rate=0.2)(pool3)
 
-        conv4 = Conv2D(filters=128, kernel_size=(3, 3))(drp3)
+        conv4 = Conv2D(filters=128, kernel_size=(3, 3), padding='same')(drp3)
         bn4 = BatchNormalization()(conv4)
         relu4 = relu(bn4)
         res6 = self.resblock(z=relu4, n_in=128, n_out=128)
         res7 = self.resblock(z=res6, n_in=128, n_out=128)
         drp4 = Dropout(rate=0.2)(res7)
 
-        conv5 = Conv2D(filters=256, kernel_size=(3, 3))(drp4)
+        conv5 = Conv2D(filters=256, kernel_size=(3, 3), padding='same')(drp4)
         bn5 = BatchNormalization()(conv5)
         relu5 = relu(bn5)
         pool5 = AveragePooling2D(pool_size=(2, 2))(relu5)
@@ -99,19 +99,16 @@ class SeResNet3:
 
     def scale(self, z, n, red=16):
         pool1 = AveragePooling2D()(z)
-        conv1 = Conv2D(red, (1, 1), activation=relu)(pool1)
-        conv2 = Conv2D(n, (1, 1))(conv1)
+        conv1 = Conv2D(red, (1, 1), activation=relu, padding='valid')(pool1)
+        conv2 = Conv2D(n, (1, 1), padding='valid')(conv1)
         return sigmoid(conv2)
 
     def resblock(self, z, n_in, n_out):
-        conv1 = Conv2D(n_in, (3, 3))(z)
+        conv1 = Conv2D(n_in, (3, 3), padding='same')(z)
         bn1 = BatchNormalization()(conv1)
         relu1 = relu(bn1)
-        conv2 = Conv2D(n_out, (3, 3))(relu1)
+        conv2 = Conv2D(n_out, (3, 3), padding='same')(relu1)
         bn2 = BatchNormalization()(conv2)
         scale1 = self.scale(bn2, n_out)
-        print('scale1 shape: {}'.format(scale1.shape))
-        print('bn2 shape: {}'.format(bn2.shape))
-        print('z shape: {}'.format(z.shape))
         out = z + scale1 * bn2
         return relu(out)
