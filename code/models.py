@@ -108,6 +108,6 @@ class SeResNet3:
         bn1 = BatchNormalization()(conv1)
         relu1 = relu(bn1)
         conv2 = Conv2D(n_out, (3, 3))(relu1)
-        bn2 = BatchNormalization(conv2)
+        bn2 = BatchNormalization()(conv2)
         out = z + self.scale(bn2, n_out) * bn2
         return relu(out)
