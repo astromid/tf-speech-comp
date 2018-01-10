@@ -39,7 +39,8 @@ os.makedirs(LOGS_PATH, exist_ok=True)
 
 train_seq = TrainSequence2D(TRAIN_PARAMS)
 val_seq = ValSequence2D(TRAIN_PARAMS)
-model = models.palsol()
+# model = models.palsol()
+model = models.SeResNet3().model
 
 tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 reduce_cb = ReduceLROnPlateau(
