@@ -100,8 +100,8 @@ class SeResNet3:
 
     def scale(self, z, n, red=16):
         pool1 = GlobalAveragePooling2D()(z)
-        conv1 = Conv1D(red, (1, 1), activation=relu)(pool1)
-        conv2 = Conv1D(n, (1, 1))(conv1)
+        conv1 = Conv1D(filters=red, kernel_size=1, activation=relu)(pool1)
+        conv2 = Conv1D(filters=n, kernel_size=1)(conv1)
         return sigmoid(conv2)
 
     def resblock(self, z, n_in, n_out):
