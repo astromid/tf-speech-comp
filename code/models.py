@@ -40,5 +40,8 @@ def palsol():
         metrics=[categorical_accuracy])
     return model
 
-def seresnet3():
-    pass
+
+class SeResNet3:
+
+    def __init__(self):
+        pass

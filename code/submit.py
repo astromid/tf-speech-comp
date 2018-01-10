@@ -59,7 +59,7 @@ if N_AUG != 0:
             verbose=1
         )
         ids_arr.append(np.argmax(preds, axis=1))
-    ids = mode(ids_arr)[0]
+    ids = mode(ids_arr)[0][0]
 
 labels = [ID2LABEL[id_] for id_ in ids]
 data = {
