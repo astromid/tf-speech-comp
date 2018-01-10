@@ -98,8 +98,8 @@ class SeResNet3:
         self.model = model
 
     def scale(self, z, n, red=16):
-        pool = AveragePooling2D()(z)
-        conv1 = Conv2D(red, (1, 1), activation=relu)(pool)
+        pool1 = AveragePooling2D()(z)
+        conv1 = Conv2D(red, (1, 1), activation=relu)(pool1)
         conv2 = Conv2D(n, (1, 1))(conv1)
         return sigmoid(conv2)
 
@@ -109,5 +109,9 @@ class SeResNet3:
         relu1 = relu(bn1)
         conv2 = Conv2D(n_out, (3, 3))(relu1)
         bn2 = BatchNormalization()(conv2)
-        out = z + self.scale(bn2, n_out) * bn2
+        scale1 = self.scale(bn2, n_out)
+        print('scale1 shape: {}'.format(scale1.shape))
+        print('bn2 shape: {}'.format(bn2.shape))
+        print('z shape: {}'.format(z.shape))
+        out = z + scale1 * bn2
         return relu(out)
