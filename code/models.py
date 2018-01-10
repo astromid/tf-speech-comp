@@ -1,6 +1,7 @@
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Conv2D, Dense, Input, Flatten
 from tensorflow.python.keras.layers import MaxPooling2D, AveragePooling2D
+from tensorflow.python.keras.layers import GlobalAveragePooling2D
 from tensorflow.python.keras.layers import Dropout, BatchNormalization
 from tensorflow.python.keras import optimizers, losses
 from tensorflow.python.keras.activations import relu, softmax, sigmoid
@@ -98,9 +99,9 @@ class SeResNet3:
         self.model = model
 
     def scale(self, z, n, red=16):
-        pool1 = AveragePooling2D()(z)
-        conv1 = Conv2D(red, (1, 1), activation=relu, padding='same')(pool1)
-        conv2 = Conv2D(n, (1, 1), padding='same')(conv1)
+        pool1 = GlobalAveragePooling2D()(z)
+        conv1 = Conv2D(red, (1, 1), activation=relu)(pool1)
+        conv2 = Conv2D(n, (1, 1))(conv1)
         return sigmoid(conv2)
 
     def resblock(self, z, n_in, n_out):
