@@ -172,6 +172,8 @@ class TrainSequence2D(AudioSequence):
         super().__init__(params)
         self.files = self._list_train_files
         self.samples, self.labels = self._load_samples
+        # shuffle before start
+        self.on_epoch_end()
         self.silence_rate = params['silence_rate']
         self.eps = params['eps']
         self.balance = params['balance']
