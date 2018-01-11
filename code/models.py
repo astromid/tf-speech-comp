@@ -1,12 +1,12 @@
 from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.layers import Conv2D, Conv1D, Dense
+from tensorflow.python.keras.layers import Conv2D, Dense
 from tensorflow.python.keras.layers import Activation, Input, Flatten
 from tensorflow.python.keras.layers import Multiply, Add
-from tensorflow.python.keras.layers import MaxPooling2D, AveragePooling2D
+from tensorflow.python.keras.layers import MaxPooling2D
 from tensorflow.python.keras.layers import GlobalAveragePooling2D
 from tensorflow.python.keras.layers import Dropout, BatchNormalization
 from tensorflow.python.keras import optimizers, losses
-from tensorflow.python.keras.activations import relu, softmax, sigmoid
+from tensorflow.python.keras.activations import relu, softmax
 from tensorflow.python.keras.metrics import categorical_accuracy
 
 N_CLASS = 12
@@ -39,8 +39,7 @@ def palsol():
     opt = optimizers.Adam()
     model.compile(
         optimizer=opt,
-        # loss=losses.binary_crossentropy,
-        loss=losses.categorical_crossentropy,
+        loss=losses.binary_crossentropy,
         metrics=[categorical_accuracy])
     return model
 
@@ -101,8 +100,6 @@ class SeResNet3:
         self.model = model
 
     def scale(self, z, n, red=16):
-        # pool1 = AveragePooling2D(pool_size=z.shape[2:])(z)
-        # pool1.reshape(pool1.shape + (1,))
         conv1 = Conv2D(filters=red, kernel_size=(1, 1), activation=relu)(z)
         conv2 = Conv2D(filters=n, kernel_size=(1, 1))(conv1)
         return Activation(activation='sigmoid')(conv2)

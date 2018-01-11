@@ -46,13 +46,19 @@ class AudioSequence(Sequence):
         return np.ceil(len(self.files) / self.batch_size).astype('int')
 
     def __getitem__(self, idx):
-        x = self.samples[idx * self.batch_size:(idx + 1) * self.batch_size]
+        x = self.known[idx * self.batch_size:(idx + 1) * self.batch_size]
         y = self.labels[idx * self.batch_size:(idx + 1) * self.batch_size]
-        for _ in range(self.full_batch_size - self.batch_size):
+        n_silence = int(self.silence_rate * self.full_batch_size)
+        n_unknown = int(self.unknown_rate * self.full_batch_size)
+        for _ in range(n_silence):
             x.append(self._get_silence)
             y.append('silence')
+        unknown_idx = np.random.randint(0, len(self.unknown_rate), n_unknown)
+        for idx in unknown_idx:
+            x.append(self.unknown[idx])
+            y.append('unknown')
         label_ids = [LABEL2ID[label] for label in y]
-        spect_batch = []
+        batch = []
         for sample in x:
             if self.augment == 0:
                 sample = self._pad_sample(sample)
@@ -60,20 +66,20 @@ class AudioSequence(Sequence):
                 sample = self._augment_sample(sample)
             spect = librosa.feature.melspectrogram(sample, L)
             spect = librosa.power_to_db(spect, ref=np.max)
-            spect_batch.append(spect)
+            batch.append(spect)
         ohe_batch = []
         for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)
             ohe_y[id_] = 1 - self.eps
             ohe_batch.append(ohe_y)
-        spect_batch = np.array(spect_batch)
+        batch = np.array(batch)
         ohe_batch = np.array(ohe_batch)
-        spect_batch = spect_batch.reshape(spect_batch.shape + (1,))
+        batch = batch.reshape(batch.shape + (1,))
         if self.balance == 0:
-            return spect_batch, ohe_batch
+            return batch, ohe_batch
         else:
             weights = compute_sample_weight('balanced', label_ids)
-            return spect_batch, ohe_batch, weights
+            return batch, ohe_batch, weights
 
     @property
     def _list_val_files(self):
@@ -108,17 +114,22 @@ class AudioSequence(Sequence):
 
     @property
     def _load_samples(self):
-        samples = []
+        known = []
+        unknown = []
         labels = []
         for file in tqdm(self.files, desc='Loading files'):
             label = os.path.dirname(file)
+            if label is '_background_noise_':
+                continue
             f_name = os.path.basename(file)
             rate, sample = wavfile.read(os.path.join(TRAIN_DIR, label, f_name))
-            samples.append(sample)
             if label not in LABELS:
-                label = 'unknown'
-            labels.append(label)
-        return samples, labels
+                unknown.append(sample)
+            else:
+                known.append(sample)
+                labels.append(label)
+        assert len(known) == len(labels)
+        return known, unknown, labels
 
     @staticmethod
     def _pad_sample(sample):
@@ -171,19 +182,21 @@ class TrainSequence2D(AudioSequence):
     def __init__(self, params):
         super().__init__(params)
         self.files = self._list_train_files
-        self.samples, self.labels = self._load_samples
+        self.known, self.unknown, self.labels = self._load_samples
         # shuffle before start
         self.on_epoch_end()
-        self.silence_rate = params['silence_rate']
+        self.silence_rate = params['silence']
+        self.unknown_rate = params['unknown']
         self.eps = params['eps']
         self.balance = params['balance']
-        self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
+        K = 1 - self.silence_rate - self.unknown_rate
+        self.batch_size = int(K * self.full_batch_size)
 
     def on_epoch_end(self):
-        data = list(zip(self.samples, self.labels))
+        data = list(zip(self.known, self.labels))
         np.random.shuffle(data)
-        self.samples, self.labels = zip(*data)
-        self.samples = list(self.samples)
+        self.known, self.labels = zip(*data)
+        self.known = list(self.known)
         self.labels = list(self.labels)
 
 
@@ -192,11 +205,13 @@ class ValSequence2D(AudioSequence):
     def __init__(self, params):
         super().__init__(params)
         self.files = self._list_val_files
-        self.samples, self.labels = self._load_samples
-        self.silence_rate = params['silence_rate']
+        self.known, self.unknown, self.labels = self._load_samples
+        self.silence_rate = params['silence']
+        self.unknown_rate = params['unknown']
         self.eps = params['eps']
         self.balance = params['balance']
-        self.batch_size = int((1 - self.silence_rate) * self.full_batch_size)
+        K = 1 - self.silence_rate - self.unknown_rate
+        self.batch_size = int(K * self.full_batch_size)
 
 
 class TestSequence2D(AudioSequence):
@@ -209,7 +224,7 @@ class TestSequence2D(AudioSequence):
 
     def __getitem__(self, idx):
         x = self.samples[idx * self.batch_size:(idx + 1) * self.batch_size]
-        spect_batch = []
+        batch = []
         for sample in x:
             if self.augment == 0:
                 sample = self._pad_sample(sample)
@@ -217,10 +232,10 @@ class TestSequence2D(AudioSequence):
                 sample = self._augment_sample(sample)
             spect = librosa.feature.melspectrogram(sample, L)
             spect = librosa.power_to_db(spect, ref=np.max)
-            spect_batch.append(spect)
-        spect_batch = np.array(spect_batch)
-        spect_batch = spect_batch.reshape(spect_batch.shape + (1,))
-        return spect_batch
+            batch.append(spect)
+        batch = np.array(batch)
+        batch = batch.reshape(batch.shape + (1,))
+        return batch
 
     @property
     def _load_samples(self):
