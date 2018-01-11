@@ -95,7 +95,7 @@ class SeResNet3:
         opt = optimizers.Adam()
         model.compile(
             optimizer=opt,
-            loss=losses.categorical_crossentropy,
+            loss=losses.binary_crossentropy,
             metrics=[categorical_accuracy])
 
         self.model = model
