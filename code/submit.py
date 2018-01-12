@@ -52,19 +52,21 @@ preds = model.predict_generator(
     steps=len(test_seq),
     verbose=1
 )
-ids = np.argmax(preds, axis=1)
+# ids = np.argmax(preds, axis=1)
 if N_AUG != 0:
+    preds = preds ** 0.5
     test_seq.augment = 1
-    ids_arr = [ids]
+    # ids_arr = [ids]
     for _ in range(N_AUG):
-        preds = model.predict_generator(
+        aug_preds = model.predict_generator(
             generator=test_seq,
             steps=len(test_seq),
             verbose=1
         )
-        ids_arr.append(np.argmax(preds, axis=1))
-    ids = mode(ids_arr)[0][0]
-
+        preds += aug_preds ** 0.5
+        # ids_arr.append(np.argmax(preds, axis=1))
+    # ids = mode(ids_arr)[0][0]
+ids = np.argmax(preds, axis=1)
 labels = [ID2LABEL[id_] for id_ in ids]
 data = {
     'fname': test_seq.files,

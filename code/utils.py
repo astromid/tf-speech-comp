@@ -7,6 +7,7 @@ from scipy.io import wavfile
 from keras.utils import Sequence
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
+from joblib import Parallel, delayed
 
 # SEED = 12017952
 # np.random.seed(SEED)
@@ -71,6 +72,7 @@ class AudioSequence(Sequence):
             x.append(self.unknown[idx])
             y.append('unknown')
         label_ids = [LABEL2ID[label] for label in y]
+        '''
         batch = []
         for sample in x:
             if self.augment == 0:
@@ -78,6 +80,13 @@ class AudioSequence(Sequence):
             else:
                 sample = self._augment_sample(sample)
             batch.append(sample)
+        '''
+        if self.augment == 0:
+            batch = Parallel(n_jobs=2)(
+                delayed(self._pad_sample)(smpl) for smpl in x)
+        else:
+            batch = Parallel(n_jobs=1)(
+                delayed(self._augment_sample)(smpl) for smpl in x)
         ohe_batch = []
         for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)

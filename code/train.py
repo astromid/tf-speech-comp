@@ -36,7 +36,7 @@ TRAIN_PARAMS = {
     'time_shift': int(args.time_shift),
     'speed_tune': float(args.speed_tune),
     'volume_tune': float(args.volume_tune),
-    'noise_vol': float(args.noise_vol),
+    'noise_vol': float(args.noise_vol)
 }
 os.makedirs(LOGS_PATH, exist_ok=True)
 
