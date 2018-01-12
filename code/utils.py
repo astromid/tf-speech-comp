@@ -66,7 +66,7 @@ class AudioSequence(Sequence):
         for _ in range(n_silence):
             x.append(self._get_silence)
             y.append('silence')
-        unknown_idx = np.random.randint(0, len(self.unknown_rate), n_unknown)
+        unknown_idx = np.random.randint(0, len(self.unknown), n_unknown)
         for idx in unknown_idx:
             x.append(self.unknown[idx])
             y.append('unknown')
