@@ -3,7 +3,8 @@ import librosa
 import os
 from glob import glob
 from scipy.io import wavfile
-from tensorflow.python.keras.utils import Sequence
+# from tensorflow.python.keras.utils import Sequence
+from keras.utils import Sequence
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
 

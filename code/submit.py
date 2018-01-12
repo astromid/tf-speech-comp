@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import os
 import argparse
-from tensorflow.python.keras.models import load_model
+# from tensorflow.python.keras.models import load_model
+from keras.models import load_model
 from utils import TestSequence2D
 from scipy.stats import mode
 
