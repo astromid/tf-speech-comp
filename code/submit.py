@@ -43,7 +43,10 @@ TEST_PARAMS = {
     'volume_tune': float(args.volume_tune),
     'noise_vol': float(args.noise_vol),
 }
-model = load_model(MODEL_PATH)
+model = load_model(
+    MODEL_PATH,
+    custom_objects={'Melspectrogram': Melspectrogram}
+)
 test_seq = TestSequence2D(TEST_PARAMS)
 preds = model.predict_generator(
     generator=test_seq,
