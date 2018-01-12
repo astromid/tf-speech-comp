@@ -41,8 +41,8 @@ class AudioSequence(Sequence):
         self.known = None
         self.unknown = None
         self.labels = None
-        self.silence_rate = None
-        self.unknown_rate = None
+        self.n_silence = None
+        self.n_unknown = None
         self.eps = None
         self.balance = None
 
@@ -56,17 +56,15 @@ class AudioSequence(Sequence):
         self.noise_vol = params['noise_vol']
 
     def __len__(self):
-        return np.ceil(len(self.files) / self.batch_size).astype('int')
+        return np.ceil(len(self.known) / self.batch_size).astype('int')
 
     def __getitem__(self, idx):
         x = self.known[idx * self.batch_size:(idx + 1) * self.batch_size]
         y = self.labels[idx * self.batch_size:(idx + 1) * self.batch_size]
-        n_silence = int(self.silence_rate * self.full_batch_size)
-        n_unknown = int(self.unknown_rate * self.full_batch_size)
-        for _ in range(n_silence):
+        for _ in range(self.n_silence):
             x.append(self._get_silence)
             y.append('silence')
-        unknown_idx = np.random.randint(0, len(self.unknown), n_unknown)
+        unknown_idx = np.random.randint(0, len(self.unknown), self.n_unknown)
         for idx in unknown_idx:
             x.append(self.unknown[idx])
             y.append('unknown')
@@ -200,12 +198,11 @@ class TrainSequence2D(AudioSequence):
         self.known, self.unknown, self.labels = self._load_samples
         # shuffle before start
         self.on_epoch_end()
-        self.silence_rate = params['silence']
-        self.unknown_rate = params['unknown']
+        self.n_silence = np.ceil(params['silence'] * self.full_batch_size).astype('int')
+        self.n_unknown = np.ceil(params['unknown'] * self.full_batch_size).astype('int')
         self.eps = params['eps']
         self.balance = params['balance']
-        k = 1 - self.silence_rate - self.unknown_rate
-        self.batch_size = int(k * self.full_batch_size)
+        self.batch_size = self.full_batch_size - self.n_unknown - self.n_silence
 
     def on_epoch_end(self):
         data = list(zip(self.known, self.labels))
@@ -221,12 +218,11 @@ class ValSequence2D(AudioSequence):
         super().__init__(params)
         self.files = self._list_val_files
         self.known, self.unknown, self.labels = self._load_samples
-        self.silence_rate = params['silence']
-        self.unknown_rate = params['unknown']
+        self.n_silence = np.ceil(params['silence'] * self.full_batch_size).astype('int')
+        self.n_unknown = np.ceil(params['unknown'] * self.full_batch_size).astype('int')
         self.eps = params['eps']
         self.balance = params['balance']
-        k = 1 - self.silence_rate - self.unknown_rate
-        self.batch_size = int(k * self.full_batch_size)
+        self.batch_size = self.full_batch_size - self.n_unknown - self.n_silence
 
 
 class TestSequence2D(AudioSequence):
@@ -234,11 +230,11 @@ class TestSequence2D(AudioSequence):
     def __init__(self, params):
         super().__init__(params)
         self.files = self._list_test_files
-        self.samples = self._load_samples
+        self.known = self._load_samples
         self.batch_size = self.full_batch_size
 
     def __getitem__(self, idx):
-        x = self.samples[idx * self.batch_size:(idx + 1) * self.batch_size]
+        x = self.known[idx * self.batch_size:(idx + 1) * self.batch_size]
         batch = []
         for sample in x:
             if self.augment == 0:
