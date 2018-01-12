@@ -87,7 +87,7 @@ class AudioSequence(Sequence):
         batch = np.array(batch)
         ohe_batch = np.array(ohe_batch)
         # batch = batch.reshape(batch.shape + (1,))
-        batch = batch.reshape((self.full_batch_size, 1, L))
+        batch = batch.reshape((-1, 1, L))
         if self.balance == 0:
             return batch, ohe_batch
         else:
@@ -247,7 +247,7 @@ class TestSequence2D(AudioSequence):
             batch.append(sample)
         batch = np.array(batch)
         # batch = batch.reshape(batch.shape + (1,))
-        batch = batch.reshape((self.full_batch_size, 1, L))
+        batch = batch.reshape((-1, 1, L))
         return batch
 
     @property
