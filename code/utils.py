@@ -34,6 +34,18 @@ def list_wav_files():
 class AudioSequence(Sequence):
 
     def __init__(self, params):
+        # properties to determine in Train & Val seqs
+        self.files = None
+        self.batch_size = None
+        self.known = None
+        self.unknown = None
+        self.labels = None
+        self.silence_rate = None
+        self.unknown_rate = None
+        self.eps = None
+        self.balance = None
+
+        # shared properties
         self.noise_samples = self._load_noise_samples
         self.full_batch_size = params['batch_size']
         self.augment = params['augment']
@@ -189,8 +201,8 @@ class TrainSequence2D(AudioSequence):
         self.unknown_rate = params['unknown']
         self.eps = params['eps']
         self.balance = params['balance']
-        K = 1 - self.silence_rate - self.unknown_rate
-        self.batch_size = int(K * self.full_batch_size)
+        k = 1 - self.silence_rate - self.unknown_rate
+        self.batch_size = int(k * self.full_batch_size)
 
     def on_epoch_end(self):
         data = list(zip(self.known, self.labels))
@@ -210,8 +222,8 @@ class ValSequence2D(AudioSequence):
         self.unknown_rate = params['unknown']
         self.eps = params['eps']
         self.balance = params['balance']
-        K = 1 - self.silence_rate - self.unknown_rate
-        self.batch_size = int(K * self.full_batch_size)
+        k = 1 - self.silence_rate - self.unknown_rate
+        self.batch_size = int(k * self.full_batch_size)
 
 
 class TestSequence2D(AudioSequence):
