@@ -54,7 +54,7 @@ class SeResNet3:
             sr=L,
             n_mels=128,
             n_dft=2048,
-            n_hop=512,
+            n_hop=256,
             power_melgram=2.0,
             return_decibel_melgram=True,
             trainable_fb=False,
