@@ -1,22 +1,12 @@
-# from tensorflow.python.keras.models import Model
 from keras.models import Model
-# from tensorflow.python.keras.layers import Conv2D, Dense
 from keras.layers import Conv2D, Dense
-# from tensorflow.python.keras.layers import Activation, Input, Flatten
 from keras.layers import Activation, Input, Flatten
-# from tensorflow.python.keras.layers import Multiply, Add
-from keras.layers import Multiply, Add, Reshape
-# from tensorflow.python.keras.layers import MaxPooling2D
+from keras.layers import Multiply, Add
 from keras.layers import MaxPooling2D
-# from tensorflow.python.keras.layers import GlobalAveragePooling2D
 from keras.layers import GlobalAveragePooling2D
-# from tensorflow.python.keras.layers import Dropout, BatchNormalization
 from keras.layers import Dropout, BatchNormalization
-# from tensorflow.python.keras import optimizers, losses
 from keras import optimizers, losses
-# from tensorflow.python.keras.activations import relu, softmax
 from keras.activations import relu, softmax
-# from tensorflow.python.keras.metrics import categorical_accuracy
 from keras.metrics import categorical_accuracy
 from kapre.time_frequency import Melspectrogram
 
@@ -59,7 +49,6 @@ def palsol():
 class SeResNet3:
 
     def __init__(self):
-        # i = Input(shape=(128, 32, 1))
         i = Input(shape=(1, L))
         mel = Melspectrogram(
             sr=L,
@@ -109,9 +98,6 @@ class SeResNet3:
         relu5 = Activation(activation='relu')(bn5)
         pool5 = GlobalAveragePooling2D()(relu5)
 
-        # shp = pool5._shape_tuple()[1:] + (1,)
-        # rshp = Reshape(shp)(pool5)
-        # flat1 = Flatten()(rshp)
         dense1 = Dense(units=256, activation=relu)(pool5)
         drp5 = Dropout(rate=0.2)(dense1)
         out = Dense(units=N_CLASS, activation=softmax)(drp5)

@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import os
 import argparse
-# from tensorflow.python.keras.models import load_model
 from keras.models import load_model
 from kapre.time_frequency import Melspectrogram
 from utils import TestSequence2D

@@ -1,9 +1,9 @@
 import numpy as np
 import librosa
 import os
+import inspect
 from glob import glob
 from scipy.io import wavfile
-# from tensorflow.python.keras.utils import Sequence
 from keras.utils import Sequence
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
@@ -20,16 +20,18 @@ VAL_LIST_PATH = os.path.join(ROOT_DIR, 'data', 'train', 'val_list.txt')
 ID2LABEL = {i: label for i, label in enumerate(LABELS)}
 LABEL2ID = {label: i for i, label in ID2LABEL.items()}
 
+# change built-in print with tqdm.write
+old_print = print
 
-def list_wav_files():
-    with open(VAL_LIST_PATH) as val_txt:
-        val_files = val_txt.readlines()
-    all_files = [os.path.relpath(file, TRAIN_DIR) for file in
-                 glob(os.path.join(TRAIN_DIR, '*', '*wav'))]
-    val_files = [os.path.normpath(file)[:-1] for file in val_files]
-    train_files = [file for file in all_files if file not in val_files]
-    noise_files = glob(os.path.join(TRAIN_DIR, '_background_noise_', '*wav'))
-    return train_files, val_files, noise_files
+
+def tqdm_print(*args, **kwargs):
+    try:
+        tqdm.write(*args, **kwargs)
+    except:
+        old_print(*args, **kwargs)
+
+
+inspect.builtins.print = tqdm_print
 
 
 class AudioSequence(Sequence):
@@ -75,9 +77,6 @@ class AudioSequence(Sequence):
                 sample = self._pad_sample(sample)
             else:
                 sample = self._augment_sample(sample)
-            # spect = librosa.feature.melspectrogram(sample, L)
-            # spect = librosa.power_to_db(spect, ref=np.max)
-            # batch.append(spect)
             batch.append(sample)
         ohe_batch = []
         for id_ in label_ids:
@@ -86,7 +85,6 @@ class AudioSequence(Sequence):
             ohe_batch.append(ohe_y)
         batch = np.array(batch)
         ohe_batch = np.array(ohe_batch)
-        # batch = batch.reshape(batch.shape + (1,))
         batch = batch.reshape((-1, 1, L))
         if self.balance == 0:
             return batch, ohe_batch
@@ -241,12 +239,8 @@ class TestSequence2D(AudioSequence):
                 sample = self._pad_sample(sample)
             else:
                 sample = self._augment_sample(sample)
-            # spect = librosa.feature.melspectrogram(sample, L)
-            # spect = librosa.power_to_db(spect, ref=np.max)
-            # batch.append(spect)
             batch.append(sample)
         batch = np.array(batch)
-        # batch = batch.reshape(batch.shape + (1,))
         batch = batch.reshape((-1, 1, L))
         return batch
 

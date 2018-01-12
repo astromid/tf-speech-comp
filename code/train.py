@@ -2,9 +2,7 @@ import os
 import argparse
 import models
 from utils import TrainSequence2D, ValSequence2D
-# from tensorflow.python.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
 from keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
-# from tensorflow.python.keras.callbacks import TensorBoard
 from keras.callbacks import TensorBoard
 from keras_tqdm import TQDMCallback
 
