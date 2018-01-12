@@ -76,9 +76,10 @@ class AudioSequence(Sequence):
                 sample = self._pad_sample(sample)
             else:
                 sample = self._augment_sample(sample)
-            spect = librosa.feature.melspectrogram(sample, L)
-            spect = librosa.power_to_db(spect, ref=np.max)
-            batch.append(spect)
+            # spect = librosa.feature.melspectrogram(sample, L)
+            # spect = librosa.power_to_db(spect, ref=np.max)
+            # batch.append(spect)
+            batch.append(sample)
         ohe_batch = []
         for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)
@@ -86,7 +87,8 @@ class AudioSequence(Sequence):
             ohe_batch.append(ohe_y)
         batch = np.array(batch)
         ohe_batch = np.array(ohe_batch)
-        batch = batch.reshape(batch.shape + (1,))
+        # batch = batch.reshape(batch.shape + (1,))
+        batch = batch.reshape((self.full_batch_size, 1, L))
         if self.balance == 0:
             return batch, ohe_batch
         else:
@@ -242,11 +244,13 @@ class TestSequence2D(AudioSequence):
                 sample = self._pad_sample(sample)
             else:
                 sample = self._augment_sample(sample)
-            spect = librosa.feature.melspectrogram(sample, L)
-            spect = librosa.power_to_db(spect, ref=np.max)
-            batch.append(spect)
+            # spect = librosa.feature.melspectrogram(sample, L)
+            # spect = librosa.power_to_db(spect, ref=np.max)
+            # batch.append(spect)
+            batch.append(sample)
         batch = np.array(batch)
-        batch = batch.reshape(batch.shape + (1,))
+        # batch = batch.reshape(batch.shape + (1,))
+        batch = batch.reshape((self.full_batch_size, 1, L))
         return batch
 
     @property

@@ -1,15 +1,27 @@
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.layers import Conv2D, Dense
-from tensorflow.python.keras.layers import Activation, Input, Flatten
-from tensorflow.python.keras.layers import Multiply, Add
-from tensorflow.python.keras.layers import MaxPooling2D
-from tensorflow.python.keras.layers import GlobalAveragePooling2D
-from tensorflow.python.keras.layers import Dropout, BatchNormalization
-from tensorflow.python.keras import optimizers, losses
-from tensorflow.python.keras.activations import relu, softmax
-from tensorflow.python.keras.metrics import categorical_accuracy
+# from tensorflow.python.keras.models import Model
+from keras.models import Model
+# from tensorflow.python.keras.layers import Conv2D, Dense
+from keras.layers import Conv2D, Dense
+# from tensorflow.python.keras.layers import Activation, Input, Flatten
+from keras.layers import Activation, Input, Flatten
+# from tensorflow.python.keras.layers import Multiply, Add
+from keras.layers import Multiply, Add, Reshape
+# from tensorflow.python.keras.layers import MaxPooling2D
+from keras.layers import MaxPooling2D
+# from tensorflow.python.keras.layers import GlobalAveragePooling2D
+from keras.layers import GlobalAveragePooling2D
+# from tensorflow.python.keras.layers import Dropout, BatchNormalization
+from keras.layers import Dropout, BatchNormalization
+# from tensorflow.python.keras import optimizers, losses
+from keras import optimizers, losses
+# from tensorflow.python.keras.activations import relu, softmax
+from keras.activations import relu, softmax
+# from tensorflow.python.keras.metrics import categorical_accuracy
+from keras.metrics import categorical_accuracy
+from kapre.time_frequency import Melspectrogram
 
 N_CLASS = 12
+L = 16000
 
 
 def palsol():
@@ -47,8 +59,20 @@ def palsol():
 class SeResNet3:
 
     def __init__(self):
-        i = Input(shape=(128, 32, 1))
-        norm_i = BatchNormalization()(i)
+        # i = Input(shape=(128, 32, 1))
+        i = Input(shape=(1, L))
+        mel = Melspectrogram(
+            sr=L,
+            n_mels=128,
+            n_dft=2048,
+            n_hop=512,
+            power_melgram=2.0,
+            return_decibel_melgram=True,
+            trainable_fb=False,
+            trainable_kernel=False,
+            input_shape=(1, L)
+        )(i)
+        norm_i = BatchNormalization()(mel)
 
         conv1 = Conv2D(filters=16, kernel_size=(3, 3), padding='same')(norm_i)
         bn1 = BatchNormalization()(conv1)
@@ -85,8 +109,10 @@ class SeResNet3:
         relu5 = Activation(activation='relu')(bn5)
         pool5 = GlobalAveragePooling2D()(relu5)
 
-        flat1 = Flatten()(pool5)
-        dense1 = Dense(units=256, activation=relu)(flat1)
+        # shp = pool5._shape_tuple()[1:] + (1,)
+        # rshp = Reshape(shp)(pool5)
+        # flat1 = Flatten()(rshp)
+        dense1 = Dense(units=256, activation=relu)(pool5)
         drp5 = Dropout(rate=0.2)(dense1)
         out = Dense(units=N_CLASS, activation=softmax)(drp5)
 
