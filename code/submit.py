@@ -47,8 +47,9 @@ model = load_model(
     MODEL_PATH,
     custom_objects={'Melspectrogram': Melspectrogram}
 )
-time1 = time.time()
+
 test_seq = TestSequence2D(TEST_PARAMS)
+time1 = time.time()
 preds = model.predict_generator(
     generator=test_seq,
     steps=len(test_seq),
