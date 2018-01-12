@@ -1,4 +1,3 @@
-import time
 from utils import ValSequence2D
 
 TRAIN_PARAMS = {
@@ -7,7 +6,7 @@ TRAIN_PARAMS = {
     'eps': 0,
     'silence': 0.1,
     'unknown': 0.1,
-    'augment': 0,
+    'augment': 1,
     'time_shift': 2000,
     'speed_tune': 0.2,
     'volume_tune': 0.2,
@@ -15,10 +14,5 @@ TRAIN_PARAMS = {
 }
 
 val_seq = ValSequence2D(TRAIN_PARAMS)
-
-time1 = time.time()
-
 for idx in range(100):
     A = val_seq.__getitem__(idx)
-
-print(time.time() - time1)
