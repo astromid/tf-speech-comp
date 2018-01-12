@@ -2,10 +2,11 @@ import numpy as np
 import pandas as pd
 import os
 import argparse
+import time
 from keras.models import load_model
 from kapre.time_frequency import Melspectrogram
 from utils import TestSequence2D
-from scipy.stats import mode
+# from scipy.stats import mode
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', dest='name')
@@ -46,12 +47,15 @@ model = load_model(
     MODEL_PATH,
     custom_objects={'Melspectrogram': Melspectrogram}
 )
+time1 = time.time()
 test_seq = TestSequence2D(TEST_PARAMS)
 preds = model.predict_generator(
     generator=test_seq,
     steps=len(test_seq),
     verbose=1
 )
+time2 = time.time()
+print(f'No aug time: {time2 - time1}')
 # ids = np.argmax(preds, axis=1)
 if N_AUG != 0:
     preds = preds ** 0.5
@@ -63,6 +67,8 @@ if N_AUG != 0:
             steps=len(test_seq),
             verbose=1
         )
+        time3 = time.time()
+        print(f'Aug time: {time3 - time2}')
         preds += aug_preds ** 0.5
         # ids_arr.append(np.argmax(preds, axis=1))
     # ids = mode(ids_arr)[0][0]
