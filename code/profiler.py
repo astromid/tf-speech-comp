@@ -18,7 +18,7 @@ val_seq = ValSequence2D(TRAIN_PARAMS)
 
 time1 = time.time()
 
-for idx in range(10):
+for idx in range(100):
     A = val_seq.__getitem__(idx)
 
 print(time.time() - time1)
