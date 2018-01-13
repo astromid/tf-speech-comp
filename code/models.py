@@ -54,11 +54,11 @@ class SeResNet3:
             sr=L,
             n_mels=128,
             n_dft=2048,
-            n_hop=256,
+            n_hop=512,
             power_melgram=2.0,
             return_decibel_melgram=True,
-            trainable_fb=True,
-            trainable_kernel=True,
+            trainable_fb=False,
+            trainable_kernel=False,
             input_shape=(1, L)
         )(i)
         norm_i = BatchNormalization()(mel)

@@ -3,40 +3,40 @@ import argparse
 import models
 from utils import TrainSequence2D, ValSequence2D
 from keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, LambdaCallback
 from keras_tqdm import TQDMCallback
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--name', dest='name')
-parser.add_argument('--epochs', dest='epochs')
-parser.add_argument('--batch', dest='batch_size')
-parser.add_argument('--bal', dest='balance', default=0)
-parser.add_argument('--eps', dest='eps', default=0)
-parser.add_argument('--sil', dest='silence', default=0.1)
-parser.add_argument('--unknown', dest='unknown', default=0.1)
-parser.add_argument('--aug', dest='augment', default=0)
-parser.add_argument('--time', dest='time_shift', default=0)
-parser.add_argument('--speed', dest='speed_tune', default=0)
-parser.add_argument('--vol', dest='volume_tune', default=0)
-parser.add_argument('--noise', dest='noise_vol', default=0)
+parser.add_argument('--name')
+parser.add_argument('--epochs', type=int)
+parser.add_argument('--batch', type=int)
+parser.add_argument('--bal', type=int, default=0)
+parser.add_argument('--eps', type=float, default=0.0)
+parser.add_argument('--sil', type=float, default=0.1)
+parser.add_argument('--unknown', type=float, default=0.1)
+parser.add_argument('--aug', type=int, default=0)
+parser.add_argument('--time', type=int, default=0)
+parser.add_argument('--speed', type=float, default=0.0)
+parser.add_argument('--vol', type=float, default=0.0)
+parser.add_argument('--noise', type=float, default=0.0)
 args = parser.parse_args()
 
 ROOT_DIR = '..'
 MODEL_DIR = os.path.join(ROOT_DIR, 'models', args.name)
 LOGS_PATH = os.path.join(MODEL_DIR, 'logs')
-EPOCHS = int(args.epochs)
-BATCH_SIZE = int(args.batch_size)
+EPOCHS = args.epochs
+BATCH_SIZE = args.batch
 TRAIN_PARAMS = {
     'batch_size': BATCH_SIZE,
-    'balance': int(args.balance),
-    'eps': float(args.eps),
-    'silence': float(args.silence),
-    'unknown': float(args.unknown),
-    'augment': int(args.augment),
-    'time_shift': int(args.time_shift),
-    'speed_tune': float(args.speed_tune),
-    'volume_tune': float(args.volume_tune),
-    'noise_vol': float(args.noise_vol)
+    'balance': args.bal,
+    'eps': args.eps,
+    'silence': args.sil,
+    'unknown': args.unknown,
+    'augment': args.aug,
+    'time_shift': args.time,
+    'speed_tune': args.speed,
+    'volume_tune': args.vol,
+    'noise_vol': args.noise
 }
 os.makedirs(LOGS_PATH, exist_ok=True)
 
@@ -46,13 +46,16 @@ val_seq = ValSequence2D(TRAIN_PARAMS)
 model = models.SeResNet3().model
 
 tqdm_cb = TQDMCallback(
-    leave_inner=True
+    leave_inner=True,
+    leave_outer=True
 )
 tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 reduce_cb = ReduceLROnPlateau(
     monitor='val_categorical_accuracy',
     patience=5,
-    verbose=1
+    verbose=1,
+    min_lr=1e-6,
+    factor=0.3
 )
 check_cb = ModelCheckpoint(
     filepath=os.path.join(MODEL_DIR, 'model-best.h5'),

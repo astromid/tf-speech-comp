@@ -7,7 +7,6 @@ from scipy.io import wavfile
 from keras.utils import Sequence
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
-from joblib import Parallel, delayed
 
 # SEED = 12017952
 # np.random.seed(SEED)
@@ -173,12 +172,12 @@ class AudioSequence(Sequence):
 
     def _augment_sample(self, sample):
         flags = np.random.rand(3)
-        if flags[0] < 0.5:
+        if self.time_shift != 0 and flags[0] < 0.5:
             sample = self._time_shift(sample)
-        if flags[1] < 0.5:
+        if self.speed_tune != 0 and flags[1] < 0.5:
             sample = self._speed_tune(sample)
         sample = self._pad_sample(sample)
-        if flags[2] < 0.5:
+        if self.noise_vol != 0 and flags[2] < 0.5:
             sample = self._get_noised(sample)
         return sample
 
