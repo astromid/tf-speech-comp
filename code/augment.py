@@ -4,58 +4,34 @@ import librosa
 L = 16000
 
 
-class AudioAugmentor:
+def augment(params, sample):
 
-    def __init__(self, params):
-        self.noise_samples = params['noise_samples']
-        self.time_shift = params['time_shift']
-        self.speed_tune = params['speed_tune']
-        self.volume_tune = params['volume_tune']
-        self.noise_vol = params['noise_vol']
-        self.flags = np.random.rand(3)
+    noise_samples = params['noise_samples']
+    time_shift = params['time_shift']
+    speed_tune = params['speed_tune']
+    volume_tune = params['volume_tune']
+    noise_vol = params['noise_vol']
+    flags = np.random.rand(3)
 
-    @staticmethod
-    def _pad_sample(sample):
-        n = len(sample)
-        if n == L:
-            return sample
-        elif n < L:
-            return np.pad(sample, (L - n, 0), 'constant', constant_values=0)
-        else:
-            begin = np.random.randint(0, n - L)
-            return sample[begin:begin + L]
-
-    @property
-    def _get_silence(self):
-        n = len(self.noise_samples)
-        sample = self.noise_samples[np.random.randint(0, n)]
-        return self._pad_sample(sample)
-
-    @property
-    def _time_shift(self):
-        shift_ = int(np.random.uniform(-self.time_shift, self.time_shift))
-        return np.roll(self.sample, shift_)
-
-    @property
-    def _speed_tune(self):
-        rate_ = np.random.uniform(1 - self.speed_tune, 1 + self.speed_tune)
-        return librosa.effects.time_stretch(self.sample.astype('float32'), rate_)
-
-    @property
-    def _get_noised(self):
-        noise_ = self._get_silence
-        volume_ = np.random.uniform(1 - self.volume_tune, 1 + self.volume_tune)
-        noise_volume_ = np.random.uniform(0, self.noise_vol)
-        return volume_ * self.sample + noise_volume_ * noise_
-
-    def augmented(self, sample):
-        self.sample = sample
-        if self.flags[0] < 0.5:
-            self.sample = self._time_shift
-        if self.flags[1] < 0.5:
-            self.sample = self._speed_tune
-        self.sample = self._pad_sample(self.sample)
-        if self.flags[2] < 0.5:
-            self.sample = self._get_noised
-        return self.sample
+    if flags[0] < 0.5:
+        shift_ = int(np.random.uniform(-time_shift, time_shift))
+        sample = np.roll(sample, shift_)
+    if flags[1] < 0.5:
+        rate_ = np.random.uniform(1 - speed_tune, 1 + speed_tune)
+        sample = librosa.effects.time_stretch(sample.astype('float32'), rate_)
+    n = len(sample)
+    if n < L:
+        sample = np.pad(sample, (L - n, 0), 'constant', constant_values=0)
+    else:
+        begin = np.random.randint(0, n - L)
+        sample = sample[begin:begin + L]
+    if flags[2] < 0.5:
+        n_noise = len(noise_samples)
+        noise_ = noise_samples[np.random.randint(0, n_noise)]
+        noise_begin = np.random.randint(0, len(noise_) - L)
+        noise_ = noise_[noise_begin:noise_begin + L]
+        volume_ = np.random.uniform(1 - volume_tune, 1 + volume_tune)
+        noise_volume_ = np.random.uniform(0, noise_vol)
+        sample = volume_ * sample + noise_volume_ * noise_
+    return sample
 

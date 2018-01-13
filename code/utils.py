@@ -8,7 +8,7 @@ from keras.utils import Sequence
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
 from joblib import Parallel, delayed
-from augment import AudioAugmentor
+from augment import augment
 
 # SEED = 12017952
 # np.random.seed(SEED)
@@ -243,9 +243,8 @@ class TestSequence2D(AudioSequence):
                 'volume_tune': self.volume_tune,
                 'noise_vol': self.noise_vol
             }
-            aug_func = AudioAugmentor(aug_params).augmented
-            batch = Parallel(n_jobs=4)(
-                delayed(aug_func(s) for s in x)
+            batch = Parallel(n_jobs=-1)(
+                delayed(augment(aug_params, s) for s in x)
             )
         batch = np.array(batch)
         batch = batch.reshape((-1, 1, L))
