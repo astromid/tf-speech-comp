@@ -1,6 +1,8 @@
 import numpy as np
-import librosa
 import os
+os.environ['LIBROSA_CACHE_DIR'] = '/tmp/librosa_cache'
+os.environ['LIBROSA_CACHE_LEVEL'] = 50
+import librosa
 import inspect
 from glob import glob
 from scipy.io import wavfile
