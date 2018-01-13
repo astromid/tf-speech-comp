@@ -5,6 +5,7 @@ import argparse
 from keras.models import load_model
 from kapre.time_frequency import Melspectrogram
 from utils import TestSequence2D
+
 # from scipy.stats import mode
 
 parser = argparse.ArgumentParser()

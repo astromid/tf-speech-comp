@@ -9,11 +9,6 @@ from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
 from joblib import Parallel, delayed
 
-
-def speed_tune_batch(batch):
-    return batch
-
-
 # SEED = 12017952
 # np.random.seed(SEED)
 LABELS = 'down go left no off on right silence stop unknown up yes'.split()
@@ -38,6 +33,16 @@ def tqdm_print(*args, **kwargs):
 
 
 inspect.builtins.print = tqdm_print
+
+
+def speed_tune_batch(batch, speed_tune):
+    n = len(batch)
+    rates_ = np.random.uniform(1 - speed_tune, 1 + speed_tune, n)
+    args = zip(batch, rates_)
+    batch = Parallel(n_jobs=-1)(
+        delayed(librosa.effects.time_stretch)(sample, rate) for sample, rate in args
+    )
+    return batch
 
 
 class AudioSequence(Sequence):
@@ -167,12 +172,12 @@ class AudioSequence(Sequence):
         return np.roll(sample, shift_)
 
     def _speed_tune(self, sample):
-        rate_ = np.random.uniform(1-self.speed_tune, 1+self.speed_tune)
+        rate_ = np.random.uniform(1 - self.speed_tune, 1 + self.speed_tune)
         return librosa.effects.time_stretch(sample.astype('float32'), rate_)
 
     def _get_noised(self, sample):
         noise_ = self._get_silence
-        volume_ = np.random.uniform(1-self.volume_tune, 1+self.volume_tune)
+        volume_ = np.random.uniform(1 - self.volume_tune, 1 + self.volume_tune)
         noise_volume_ = np.random.uniform(0, self.noise_vol)
         return volume_ * sample + noise_volume_ * noise_
 
@@ -192,8 +197,8 @@ class AudioSequence(Sequence):
         for i in range(n):
             flag = np.random.rand()
             if flag < 0.5:
-                batch[i] = self._time_shift(batch[i])
-        batch = speed_tune_batch(batch)
+                batch[i] = self._time_shift(batch[i]).astype('float32')
+        batch = speed_tune_batch(batch, self.speed_tune)
         for i in range(n):
             flag = np.random.rand()
             if flag < 0.5:
@@ -266,4 +271,3 @@ class TestSequence2D(AudioSequence):
             rate, sample = wavfile.read(os.path.join(TEST_DIR, f_name))
             samples.append(sample)
         return samples
-
