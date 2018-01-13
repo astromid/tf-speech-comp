@@ -38,7 +38,8 @@ inspect.builtins.print = tqdm_print
 
 def augment(params, sample):
 
-    noise_samples = params['noise_samples']
+    # noise_samples = params['noise_samples']
+    noise_samples = [np.zeros(L)]
     time_shift = params['time_shift']
     speed_tune = params['speed_tune']
     volume_tune = params['volume_tune']
@@ -269,7 +270,7 @@ class TestSequence2D(AudioSequence):
         else:
             # batch = [self._augment_sample(s) for s in x]
             aug_params = {
-                'noise_samples': self.noise_samples,
+                # 'noise_samples': self.noise_samples,
                 'time_shift': self.time_shift,
                 'speed_tune': self.speed_tune,
                 'volume_tune': self.volume_tune,
