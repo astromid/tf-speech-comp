@@ -1,7 +1,7 @@
 import numpy as np
 import os
 os.environ['LIBROSA_CACHE_DIR'] = '/tmp/librosa_cache'
-os.environ['LIBROSA_CACHE_LEVEL'] = 50
+os.environ['LIBROSA_CACHE_LEVEL'] = '50'
 import librosa
 import inspect
 from glob import glob
