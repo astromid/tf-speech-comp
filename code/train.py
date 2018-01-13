@@ -45,7 +45,9 @@ val_seq = ValSequence2D(TRAIN_PARAMS)
 # model = models.palsol()
 model = models.SeResNet3().model
 
-tqdm_cb = TQDMCallback()
+tqdm_cb = TQDMCallback(
+    leave_inner=True
+)
 tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 reduce_cb = ReduceLROnPlateau(
     monitor='val_categorical_accuracy',
@@ -63,7 +65,7 @@ hist = model.fit_generator(
     generator=train_seq,
     steps_per_epoch=len(train_seq),
     epochs=EPOCHS,
-    verbose=2,
+    verbose=0,
     callbacks=[tqdm_cb, tb_cb, reduce_cb, check_cb],
     validation_data=val_seq,
     validation_steps=len(val_seq)
