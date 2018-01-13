@@ -35,21 +35,6 @@ def tqdm_print(*args, **kwargs):
 inspect.builtins.print = tqdm_print
 
 
-def speed_tune_batch(batch, speed_tune):
-    n = len(batch)
-    rates_ = np.random.uniform(1 - speed_tune, 1 + speed_tune, n)
-    args = zip(batch, rates_)
-    '''
-    batch = Parallel(n_jobs=-1)(
-        delayed(librosa.effects.time_stretch)(
-            sample.astype('float'), rate
-        ) for sample, rate in args
-    )
-    '''
-    batch = [librosa.effects.time_stretch(s.astype('float'), r) for s, r, in args]
-    return batch
-
-
 class AudioSequence(Sequence):
 
     def __init__(self, params):
@@ -178,7 +163,7 @@ class AudioSequence(Sequence):
 
     def _speed_tune(self, sample):
         rate_ = np.random.uniform(1 - self.speed_tune, 1 + self.speed_tune)
-        return librosa.effects.time_stretch(sample.astype('float32'), rate_)
+        return librosa.effects.time_stretch(sample.astype('float16'), rate_)
 
     def _get_noised(self, sample):
         noise_ = self._get_silence
@@ -196,20 +181,6 @@ class AudioSequence(Sequence):
         if flags[2] < 0.5:
             sample = self._get_noised(sample)
         return sample
-
-    def _augment_batch(self, batch):
-        n = len(batch)
-        for i in range(n):
-            flag = np.random.rand()
-            if flag < 0.5:
-                batch[i] = self._time_shift(batch[i])
-        batch = speed_tune_batch(batch, self.speed_tune)
-        for i in range(n):
-            batch[i] = self._pad_sample(batch[i])
-            flag = np.random.rand()
-            if flag < 0.5:
-                batch[i] = self._get_noised(batch[i])
-        return batch
 
     def on_epoch_end(self):
         pass
@@ -263,8 +234,7 @@ class TestSequence2D(AudioSequence):
         if self.augment == 0:
             batch = [self._pad_sample(s) for s in x]
         else:
-            # batch = [self._augment_sample(s) for s in x]
-            batch = self._augment_batch(x)
+            batch = [self._augment_sample(s) for s in x]
         batch = np.array(batch)
         batch = batch.reshape((-1, 1, L))
         return batch
