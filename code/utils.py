@@ -39,11 +39,14 @@ def speed_tune_batch(batch, speed_tune):
     n = len(batch)
     rates_ = np.random.uniform(1 - speed_tune, 1 + speed_tune, n)
     args = zip(batch, rates_)
+    '''
     batch = Parallel(n_jobs=-1)(
         delayed(librosa.effects.time_stretch)(
             sample.astype('float'), rate
         ) for sample, rate in args
     )
+    '''
+    batch = [librosa.effects.time_stretch(s.astype('float'), r) for s, r, in args]
     return batch
 
 
