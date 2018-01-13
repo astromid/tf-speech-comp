@@ -40,7 +40,9 @@ def speed_tune_batch(batch, speed_tune):
     rates_ = np.random.uniform(1 - speed_tune, 1 + speed_tune, n)
     args = zip(batch, rates_)
     batch = Parallel(n_jobs=-1)(
-        delayed(librosa.effects.time_stretch)(sample, rate) for sample, rate in args
+        delayed(librosa.effects.time_stretch)(
+            sample.astype('float'), rate
+        ) for sample, rate in args
     )
     return batch
 
@@ -197,7 +199,7 @@ class AudioSequence(Sequence):
         for i in range(n):
             flag = np.random.rand()
             if flag < 0.5:
-                batch[i] = self._time_shift(batch[i]).astype('float32')
+                batch[i] = self._time_shift(batch[i])
         batch = speed_tune_batch(batch, self.speed_tune)
         for i in range(n):
             flag = np.random.rand()
