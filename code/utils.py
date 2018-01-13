@@ -163,7 +163,7 @@ class AudioSequence(Sequence):
 
     def _speed_tune(self, sample):
         rate_ = np.random.uniform(1 - self.speed_tune, 1 + self.speed_tune)
-        return librosa.effects.time_stretch(sample.astype('float16'), rate_)
+        return librosa.effects.time_stretch(sample.astype('float'), rate_)
 
     def _get_noised(self, sample):
         noise_ = self._get_silence
