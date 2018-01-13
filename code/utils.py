@@ -7,7 +7,8 @@ from scipy.io import wavfile
 from keras.utils import Sequence
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
-from multiprocessing import Pool
+from joblib import Parallel, delayed
+from augment import AudioAugmentor
 
 # SEED = 12017952
 # np.random.seed(SEED)
@@ -228,7 +229,6 @@ class TestSequence2D(AudioSequence):
         self.files = self._list_test_files
         self.known = self._load_samples
         self.batch_size = self.full_batch_size
-        self.map = Pool().map
 
     def __getitem__(self, idx):
         x = self.known[idx * self.batch_size:(idx + 1) * self.batch_size]
@@ -236,7 +236,16 @@ class TestSequence2D(AudioSequence):
             batch = [self._pad_sample(s) for s in x]
         else:
             # batch = [self._augment_sample(s) for s in x]
-            batch = self.map(self._augment_sample, x)
+            aug_params = {
+                'noise_samples': self.noise_samples,
+                'time_shift': self.time_shift,
+                'speed_tune': self.speed_tune,
+                'volume_tune': self.volume_tune,
+                'noise_vol': self.noise_vol
+            }
+            batch = Parallel(n_jobs=4)(
+                delayed(AudioAugmentor(aug_params, s) for s in x)
+            )
         batch = np.array(batch)
         batch = batch.reshape((-1, 1, L))
         return batch
@@ -249,3 +258,4 @@ class TestSequence2D(AudioSequence):
             rate, sample = wavfile.read(os.path.join(TEST_DIR, f_name))
             samples.append(sample)
         return samples
+
