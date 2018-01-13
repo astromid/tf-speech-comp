@@ -202,6 +202,7 @@ class AudioSequence(Sequence):
                 batch[i] = self._time_shift(batch[i])
         batch = speed_tune_batch(batch, self.speed_tune)
         for i in range(n):
+            batch[i] = self._pad_sample(batch[i])
             flag = np.random.rand()
             if flag < 0.5:
                 batch[i] = self._get_noised(batch[i])
