@@ -6,8 +6,7 @@ L = 16000
 
 class AudioAugmentor:
 
-    def __init__(self, params, sample):
-        self.sample = sample
+    def __init__(self, params):
         self.noise_samples = params['noise_samples']
         self.time_shift = params['time_shift']
         self.speed_tune = params['speed_tune']
@@ -49,8 +48,8 @@ class AudioAugmentor:
         noise_volume_ = np.random.uniform(0, self.noise_vol)
         return volume_ * self.sample + noise_volume_ * noise_
 
-    @property
-    def augmented(self):
+    def augmented(self, sample):
+        self.sample = sample
         if self.flags[0] < 0.5:
             self.sample = self._time_shift
         if self.flags[1] < 0.5:
