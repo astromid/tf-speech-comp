@@ -244,7 +244,7 @@ class TestSequence2D(AudioSequence):
                 'noise_vol': self.noise_vol
             }
             batch = Parallel(n_jobs=4)(
-                delayed(AudioAugmentor(aug_params, s) for s in x)
+                delayed(AudioAugmentor(aug_params, s).augmented for s in x)
             )
         batch = np.array(batch)
         batch = batch.reshape((-1, 1, L))
