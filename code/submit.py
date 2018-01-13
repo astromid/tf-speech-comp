@@ -22,16 +22,21 @@ args = parser.parse_args()
 ROOT_DIR = '..'
 MODELS_DIR = os.path.join(ROOT_DIR, 'models')
 SUB_DIR = os.path.join(ROOT_DIR, 'subs')
+N_AUG = int(args.augment)
+
+if N_AUG == 0:
+    sub_end = '.csv'
+else:
+    sub_end = f'-tta-{N_AUG}.csv'
 
 if int(args.best) == 0:
     MODEL_PATH = os.path.join(MODELS_DIR, args.name, 'model.h5')
-    SUB_PATH = os.path.join(SUB_DIR, args.name + '.csv')
+    SUB_PATH = os.path.join(SUB_DIR, args.name + sub_end)
 else:
     MODEL_PATH = os.path.join(MODELS_DIR, args.name, 'model-best.h5')
-    SUB_PATH = os.path.join(SUB_DIR, args.name + '-best.csv')
+    SUB_PATH = os.path.join(SUB_DIR, args.name + '-best' + sub_end)
 
 BATCH_SIZE = int(args.batch_size)
-N_AUG = int(args.augment)
 LABELS = 'down go left no off on right silence stop unknown up yes'.split()
 ID2LABEL = {i: label for i, label in enumerate(LABELS)}
 TEST_PARAMS = {

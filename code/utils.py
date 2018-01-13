@@ -1,7 +1,5 @@
 import numpy as np
 import os
-os.environ['LIBROSA_CACHE_DIR'] = '/tmp/librosa_cache'
-os.environ['LIBROSA_CACHE_LEVEL'] = '50'
 import librosa
 import inspect
 from glob import glob
@@ -9,6 +7,7 @@ from scipy.io import wavfile
 from keras.utils import Sequence
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
+from multiprocessing import Pool
 
 # SEED = 12017952
 # np.random.seed(SEED)
@@ -73,13 +72,10 @@ class AudioSequence(Sequence):
             x.append(self.unknown[idx])
             y.append('unknown')
         label_ids = [LABEL2ID[label] for label in y]
-        batch = []
-        for sample in x:
-            if self.augment == 0:
-                sample = self._pad_sample(sample)
-            else:
-                sample = self._augment_sample(sample)
-            batch.append(sample)
+        if self.augment == 0:
+            batch = [self._pad_sample(s) for s in x]
+        else:
+            batch = [self._augment_sample(s) for s in x]
         ohe_batch = []
         for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)
@@ -232,16 +228,15 @@ class TestSequence2D(AudioSequence):
         self.files = self._list_test_files
         self.known = self._load_samples
         self.batch_size = self.full_batch_size
+        self.map = Pool().map
 
     def __getitem__(self, idx):
         x = self.known[idx * self.batch_size:(idx + 1) * self.batch_size]
-        batch = []
-        for sample in x:
-            if self.augment == 0:
-                sample = self._pad_sample(sample)
-            else:
-                sample = self._augment_sample(sample)
-            batch.append(sample)
+        if self.augment == 0:
+            batch = [self._pad_sample(s) for s in x]
+        else:
+            # batch = [self._augment_sample(s) for s in x]
+            batch = self.map(self._augment_sample, x)
         batch = np.array(batch)
         batch = batch.reshape((-1, 1, L))
         return batch
