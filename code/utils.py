@@ -88,7 +88,9 @@ class AudioSequence(Sequence):
             batch = [self._pad_sample(s) for s in x]
         else:
             # batch = [self._augment_sample(s) for s in x]
-            batch = self._augment_batch(x)
+            # batch = self._augment_batch(x)
+            minibatch_size = np.ceil(self.full_batch_size / N_JOBS).astype('int')
+            batch = self.p.map(self._augment_sample, x, chunksize=minibatch_size)
         ohe_batch = []
         for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)
@@ -208,7 +210,7 @@ class AudioSequence(Sequence):
                 minibatch = batch[i * minibatch_size:(i + 1) * minibatch_size]
                 minibatches.append(minibatch)
             # p = Pool()
-            results = self.p.map(_batched_speed_tune, minibatches)
+            results = self.p.map(_batched_speed_tune, minibatches, self.speed_tune)
             batch = [item for sublist in results for item in sublist]
         if self.noise_vol != 0:
             for i in range(n):
