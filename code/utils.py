@@ -37,26 +37,6 @@ def tqdm_print(*args, **kwargs):
 inspect.builtins.print = tqdm_print
 
 
-def _batched_speed_tune(args):
-    batch, speed_tune = args
-    n = len(batch)
-    minibatch_size = np.ceil(n / N_JOBS).astype('int')
-    flags = np.random.rand(n)
-    rates = np.random.uniform(1 - speed_tune, 1 + speed_tune, n)
-    args = list(zip(batch, rates, flags))
-    p = Pool()
-    batch = p.map(_just_speed_tune, args, chunksize=minibatch_size)
-    return batch
-
-
-def _just_speed_tune(args):
-    sample, rate, flag = args
-    if flag < 0.5:
-        return time_stretch(sample.astype('float'), rate)
-    else:
-        return sample
-
-
 class AudioSequence(Sequence):
 
     def __init__(self, params):
@@ -97,8 +77,7 @@ class AudioSequence(Sequence):
         if self.augment == 0:
             batch = [self._pad_sample(s) for s in x]
         else:
-            # batch = [self._augment_sample(s) for s in x]
-            batch = self._augment_batch(x)
+            batch = [self._augment_sample(s) for s in x]
         ohe_batch = []
         for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)
@@ -204,20 +183,6 @@ class AudioSequence(Sequence):
         if self.noise_vol != 0 and flags[2] < 0.5:
             sample = self._get_noised(sample)
         return sample
-
-    def _augment_batch(self, batch):
-        n = len(batch)
-        if self.time_shift != 0:
-            for i in range(n):
-                if np.random.rand() < 0.5:
-                    batch[i] = self._time_shift(batch[i])
-        if self.speed_tune != 0:
-            batch = _batched_speed_tune([batch, self.speed_tune].copy())
-        if self.noise_vol != 0:
-            for i in range(n):
-                if np.random.rand() < 0.5:
-                    batch[i] = self._get_noised(batch[i])
-        return batch
 
     def on_epoch_end(self):
         pass
