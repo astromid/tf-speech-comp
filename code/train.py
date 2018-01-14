@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--name')
 parser.add_argument('--epochs', type=int)
 parser.add_argument('--batch', type=int)
-parser.add_argument('--bal', type=int, default=0)
+parser.add_argument('--bal', type=int, default=1)
 parser.add_argument('--eps', type=float, default=0.0)
 parser.add_argument('--sil', type=float, default=0.1)
 parser.add_argument('--unknown', type=float, default=0.1)
@@ -47,7 +47,6 @@ model = models.SeResNet3().model
 
 tqdm_cb = TQDMCallback(
     leave_inner=False,
-    leave_outer=False
 )
 tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 reduce_cb = ReduceLROnPlateau(
