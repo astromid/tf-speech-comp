@@ -63,7 +63,7 @@ reduce_cb = ReduceLROnPlateau(
 )
 tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 log_cb = LoggerCallback()
-tqdm_cb = TQDMCallback()
+tqdm_cb = TQDMCallback(leave_inner=False)
 hist = model.fit_generator(
     generator=train_seq,
     steps_per_epoch=len(train_seq),

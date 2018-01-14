@@ -301,6 +301,6 @@ class LoggerCallback(Callback):
             name=metric,
             value=np.mean(logs[metric], axis=None)
         ) for metric in metrics if metric in logs]
-        epoch_output = 'Epoch {value:05d}'.format(value=(epoch + 1))
+        epoch_output = 'Epoch {value:05d}: '.format(value=(epoch + 1))
         output = epoch_output + ', '.join(strings)
         print(output)
