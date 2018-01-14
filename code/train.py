@@ -78,4 +78,5 @@ hist = model.fit_generator(
 model.save(os.path.join(MODEL_DIR, 'model.h5'))
 print('Model saved successfully')
 last_val_cat_acc = hist['val_categorical_accuracy'][-1]
-print(f'Last epoch: val_cat_acc - {last_val_cat_acc}')
+last_val_loss = hist['val_loss'][-1]
+print(f'Last epoch: val_cat_acc - {last_val_cat_acc}, val_loss - {last_val_loss}')
