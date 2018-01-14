@@ -46,16 +46,18 @@ val_seq = ValSequence2D(TRAIN_PARAMS)
 model = models.SeResNet3().model
 
 tqdm_cb = TQDMCallback(
-    leave_inner=True,
-    leave_outer=True
+    leave_inner=False,
+    leave_outer=False
 )
 tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 reduce_cb = ReduceLROnPlateau(
     monitor='val_categorical_accuracy',
+    factor=0.3,
     patience=5,
     verbose=1,
-    min_lr=1e-6,
-    factor=0.3
+    epsilon=0.01,
+    cooldown=3,
+    min_lr=1e-6
 )
 check_cb = ModelCheckpoint(
     filepath=os.path.join(MODEL_DIR, 'model-best.h5'),
@@ -69,9 +71,11 @@ hist = model.fit_generator(
     steps_per_epoch=len(train_seq),
     epochs=EPOCHS,
     verbose=0,
-    callbacks=[tqdm_cb, tb_cb, reduce_cb, check_cb],
+    callbacks=[check_cb, reduce_cb, tb_cb, tqdm_cb],
     validation_data=val_seq,
     validation_steps=len(val_seq)
 )
 model.save(os.path.join(MODEL_DIR, 'model.h5'))
 print('Model saved successfully')
+last_val_cat_acc = hist['val_categorical_accuracy'][-1]
+print(f'Last epoch: val_cat_acc - {last_val_cat_acc}')
