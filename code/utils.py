@@ -263,7 +263,7 @@ class LoggerCallback(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         metrics = self.params['metrics']
-        metric_format = '{name}: {value:0.3f}'
+        metric_format = '{name}: {value:0.5f}'
         strings = [metric_format.format(
             name=metric,
             value=np.mean(logs[metric], axis=None)
