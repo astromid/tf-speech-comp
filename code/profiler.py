@@ -6,7 +6,7 @@ from multiprocessing import Pool
 
 dir_ = '../data/train/audio/'
 BATCH_SIZE = 256
-N_JOBS = 1
+N_JOBS = 8
 
 files = [
     'bed/989a2213_nohash_1.wav',
@@ -41,6 +41,12 @@ def batched_time(batch_):
     return batch_
 
 
+def just_time(sample):
+    rate_ = np.random.uniform(0.8, 1.2)
+    sample = time_stretch(sample.astype('float'), rate_)
+    return sample
+
+
 time1 = time.time()
 batch = batched_time(samples)
 time2 = time.time()
@@ -48,13 +54,13 @@ delta1 = time2 - time1
 print(f'Batch {BATCH_SIZE}: time = {delta1}')
 
 batches = []
-size = int(BATCH_SIZE / N_JOBS)
-for job in range(N_JOBS):
-    batch_crop = samples[job * size:(job + 1) * size]
-    batches.append(batch_crop)
+b_size = int(BATCH_SIZE / N_JOBS)
+#for job in range(N_JOBS):
+#    batch_crop = samples[job * b_size:(job + 1) * b_size]
+#    batches.append(batch_crop)
 
 p = Pool()
-batches = p.map(batched_time, batches)
+batches = p.map(just_time, samples, chunksize=b_size)
 time3 = time.time()
 print(len(batches))
 delta2 = time3 - time2

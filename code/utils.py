@@ -46,6 +46,14 @@ def _batched_speed_tune(batch, speed_tune):
     return batch
 
 
+def _just_speed_tune(args):
+    sample, rate, flag = args
+    if flag < 0.5:
+        return librosa.effects.time_stretch(sample.astype('float'), rate)
+    else:
+        return sample
+
+
 class AudioSequence(Sequence):
 
     def __init__(self, params):
@@ -90,7 +98,14 @@ class AudioSequence(Sequence):
             # batch = [self._augment_sample(s) for s in x]
             # batch = self._augment_batch(x)
             minibatch_size = np.ceil(self.full_batch_size / N_JOBS).astype('int')
-            batch = self.p.map(self._augment_sample, x, chunksize=minibatch_size)
+            # batch = self.p.map(self._augment_sample, x, chunksize=minibatch_size)
+            flags = np.random.rand(self.full_batch_size)
+            rates = np.random.uniform(
+                1 - self.speed_tune,
+                1 + self.speed_tune,
+                self.full_batch_size)
+            args = (x, rates, flags)
+            batch = self.p.map(_just_speed_tune, args, chunksize=minibatch_size)
         ohe_batch = []
         for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)
@@ -210,7 +225,7 @@ class AudioSequence(Sequence):
                 minibatch = batch[i * minibatch_size:(i + 1) * minibatch_size]
                 minibatches.append(minibatch)
             # p = Pool()
-            results = self.p.map(_batched_speed_tune, minibatches, self.speed_tune)
+            results = self.p.map(_batched_speed_tune, minibatches)
             batch = [item for sublist in results for item in sublist]
         if self.noise_vol != 0:
             for i in range(n):
