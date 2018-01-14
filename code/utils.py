@@ -37,7 +37,8 @@ def tqdm_print(*args, **kwargs):
 inspect.builtins.print = tqdm_print
 
 
-def _batched_speed_tune(batch, speed_tune):
+def _batched_speed_tune(args):
+    batch, speed_tune = args
     n = len(batch)
     minibatch_size = np.ceil(n / N_JOBS).astype('int')
     flags = np.random.rand(n)
@@ -211,17 +212,7 @@ class AudioSequence(Sequence):
                 if np.random.rand() < 0.5:
                     batch[i] = self._time_shift(batch[i])
         if self.speed_tune != 0:
-            # minibatch_size = np.ceil(n / N_JOBS).astype('int')
-            '''
-            minibatches = []
-            for i in range(N_JOBS):
-                minibatch = batch[i * minibatch_size:(i + 1) * minibatch_size]
-                minibatches.append(minibatch)
-            # p = Pool()
-            results = self.p.map(_batched_speed_tune, minibatches)
-            batch = [item for sublist in results for item in sublist]
-            '''
-            batch = _batched_speed_tune(batch, self.speed_tune)
+            batch = _batched_speed_tune([batch, self.speed_tune].copy())
         if self.noise_vol != 0:
             for i in range(n):
                 if np.random.rand() < 0.5:
