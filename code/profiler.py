@@ -61,7 +61,7 @@ time2 = time.time()
 delta1 = time2 - time1
 print(f'Batch {BATCH_SIZE}: time = {delta1}')
 
-batches = []
+# batches = []
 b_size = int(BATCH_SIZE / N_JOBS)
 #for job in range(N_JOBS):
 #    batch_crop = samples[job * b_size:(job + 1) * b_size]

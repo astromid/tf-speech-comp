@@ -1,10 +1,10 @@
 import numpy as np
 import os
-import librosa
 import inspect
 from glob import glob
 from scipy.io import wavfile
 from keras.utils import Sequence
+from librosa.effects import time_stretch
 from keras.callbacks import Callback
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
@@ -39,27 +39,19 @@ inspect.builtins.print = tqdm_print
 
 def _batched_speed_tune(batch, speed_tune):
     n = len(batch)
-    '''
-    for i in range(n):
-        if speed_tune != 0 and np.random.rand() < 0.5:
-            rate_ = np.random.uniform(1 - speed_tune, 1 + speed_tune)
-            batch[i] = librosa.effects.time_stretch(batch[i].astype('float'), rate_)
-    '''
     minibatch_size = np.ceil(n / N_JOBS).astype('int')
-    # batch = self.p.map(self._augment_sample, x, chunksize=minibatch_size)
     flags = np.random.rand(n)
     rates = np.random.uniform(1 - speed_tune, 1 + speed_tune, n)
     args = list(zip(batch, rates, flags))
     p = Pool()
     batch = p.map(_just_speed_tune, args, chunksize=minibatch_size)
-
     return batch
 
 
 def _just_speed_tune(args):
     sample, rate, flag = args
     if flag < 0.5:
-        return librosa.effects.time_stretch(sample.astype('float'), rate)
+        return time_stretch(sample.astype('float'), rate)
     else:
         return sample
 
@@ -193,7 +185,7 @@ class AudioSequence(Sequence):
 
     def _speed_tune(self, sample):
         rate_ = np.random.uniform(1 - self.speed_tune, 1 + self.speed_tune)
-        return librosa.effects.time_stretch(sample.astype('float'), rate_)
+        return time_stretch(sample.astype('float'), rate_)
 
     def _get_noised(self, sample):
         noise_ = self._get_silence
