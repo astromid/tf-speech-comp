@@ -47,6 +47,14 @@ def just_time(sample):
     return sample
 
 
+def _just_speed_tune(args):
+    sample, rate, flag = args
+    if flag < 0.5:
+        return time_stretch(sample.astype('float'), rate)
+    else:
+        return sample
+
+
 time1 = time.time()
 batch = batched_time(samples)
 time2 = time.time()
@@ -60,7 +68,14 @@ b_size = int(BATCH_SIZE / N_JOBS)
 #    batches.append(batch_crop)
 
 p = Pool()
-batches = p.map(just_time, samples, chunksize=b_size)
+# batches = p.map(just_time, samples, chunksize=b_size)
+flags = np.random.rand(BATCH_SIZE)
+rates = np.random.uniform(
+    1 - 0.2,
+    1 + 0.2,
+    BATCH_SIZE)
+args = list(zip(samples, rates, flags))
+batches = p.map(_just_speed_tune, args, chunksize=b_size)
 time3 = time.time()
 print(len(batches))
 delta2 = time3 - time2

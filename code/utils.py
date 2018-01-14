@@ -104,7 +104,7 @@ class AudioSequence(Sequence):
                 1 - self.speed_tune,
                 1 + self.speed_tune,
                 self.full_batch_size)
-            args = (x, rates, flags)
+            args = list(zip(x, rates, flags))
             batch = self.p.map(_just_speed_tune, args, chunksize=minibatch_size)
         ohe_batch = []
         for id_ in label_ids:
