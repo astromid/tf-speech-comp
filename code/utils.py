@@ -8,7 +8,6 @@ from librosa.effects import time_stretch
 from keras.callbacks import Callback
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
-from multiprocessing import Pool
 
 # SEED = 12017952
 # np.random.seed(SEED)
@@ -224,7 +223,7 @@ class ValSequence2D(AudioSequence):
         self.labels += ['unknown'] * len(self.unknown)
         self.eps = params['eps']
         # no balance at validation time
-        self.balance = 0
+        # self.balance = 0
         # self.batch_size = self.full_batch_size - self.n_unknown - self.n_silence
         self.batch_size = self.full_batch_size - self.n_silence
 
