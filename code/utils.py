@@ -39,10 +39,20 @@ inspect.builtins.print = tqdm_print
 
 def _batched_speed_tune(batch, speed_tune):
     n = len(batch)
+    '''
     for i in range(n):
         if speed_tune != 0 and np.random.rand() < 0.5:
             rate_ = np.random.uniform(1 - speed_tune, 1 + speed_tune)
             batch[i] = librosa.effects.time_stretch(batch[i].astype('float'), rate_)
+    '''
+    minibatch_size = np.ceil(n / N_JOBS).astype('int')
+    # batch = self.p.map(self._augment_sample, x, chunksize=minibatch_size)
+    flags = np.random.rand(n)
+    rates = np.random.uniform(1 - speed_tune, 1 + speed_tune, n)
+    args = list(zip(batch, rates, flags))
+    p = Pool()
+    batch = p.map(_just_speed_tune, args, chunksize=minibatch_size)
+
     return batch
 
 
@@ -76,7 +86,6 @@ class AudioSequence(Sequence):
         self.speed_tune = params['speed_tune']
         self.volume_tune = params['volume_tune']
         self.noise_vol = params['noise_vol']
-        self.p = Pool()
 
     def __len__(self):
         return np.ceil(len(self.known) / self.batch_size).astype('int')
@@ -96,16 +105,7 @@ class AudioSequence(Sequence):
             batch = [self._pad_sample(s) for s in x]
         else:
             # batch = [self._augment_sample(s) for s in x]
-            # batch = self._augment_batch(x)
-            minibatch_size = np.ceil(self.full_batch_size / N_JOBS).astype('int')
-            # batch = self.p.map(self._augment_sample, x, chunksize=minibatch_size)
-            flags = np.random.rand(self.full_batch_size)
-            rates = np.random.uniform(
-                1 - self.speed_tune,
-                1 + self.speed_tune,
-                self.full_batch_size)
-            args = list(zip(x, rates, flags))
-            batch = self.p.map(_just_speed_tune, args, chunksize=minibatch_size)
+            batch = self._augment_batch(x)
         ohe_batch = []
         for id_ in label_ids:
             ohe_y = np.ones(N_CLASS) * self.eps / (N_CLASS - 1)
@@ -219,7 +219,8 @@ class AudioSequence(Sequence):
                 if np.random.rand() < 0.5:
                     batch[i] = self._time_shift(batch[i])
         if self.speed_tune != 0:
-            minibatch_size = np.ceil(n / N_JOBS).astype('int')
+            # minibatch_size = np.ceil(n / N_JOBS).astype('int')
+            '''
             minibatches = []
             for i in range(N_JOBS):
                 minibatch = batch[i * minibatch_size:(i + 1) * minibatch_size]
@@ -227,6 +228,8 @@ class AudioSequence(Sequence):
             # p = Pool()
             results = self.p.map(_batched_speed_tune, minibatches)
             batch = [item for sublist in results for item in sublist]
+            '''
+            batch = _batched_speed_tune(batch, self.speed_tune)
         if self.noise_vol != 0:
             for i in range(n):
                 if np.random.rand() < 0.5:
