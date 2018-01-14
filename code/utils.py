@@ -5,6 +5,7 @@ import inspect
 from glob import glob
 from scipy.io import wavfile
 from keras.utils import Sequence
+from keras.callbacks import Callback
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
 from multiprocessing import Pool
@@ -286,3 +287,19 @@ class TestSequence2D(AudioSequence):
             rate, sample = wavfile.read(os.path.join(TEST_DIR, f_name))
             samples.append(sample)
         return samples
+
+
+class LoggerCallback(Callback):
+
+    def __init__(self):
+        super().__init__()
+
+    def on_epoch_end(self, epoch, logs={}):
+        metrics = self.params['metrics']
+        metric_format = '{name}: {value:0.3f}'
+        strings = [metric_format.format(
+            name=metric,
+            value=np.mean(logs[metric], axis=None)
+        ) for metric in metrics if metric in logs]
+        output = ', '.join(strings)
+        print('\n' + output)

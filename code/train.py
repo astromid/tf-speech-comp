@@ -3,7 +3,8 @@ import argparse
 import models
 from utils import TrainSequence2D, ValSequence2D
 from keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
-from keras.callbacks import TensorBoard, LambdaCallback
+from keras.callbacks import TensorBoard
+from utils import LoggerCallback
 from keras_tqdm import TQDMCallback
 
 parser = argparse.ArgumentParser()
@@ -45,11 +46,12 @@ val_seq = ValSequence2D(TRAIN_PARAMS)
 # model = models.palsol()
 model = models.SeResNet3().model
 
-tqdm_cb = TQDMCallback(
-    leave_inner=True,
-    leave_outer=False
+check_cb = ModelCheckpoint(
+    filepath=os.path.join(MODEL_DIR, 'model-best.h5'),
+    monitor='val_categorical_accuracy',
+    verbose=1,
+    save_best_only=True
 )
-tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
 reduce_cb = ReduceLROnPlateau(
     monitor='val_categorical_accuracy',
     factor=0.3,
@@ -59,19 +61,15 @@ reduce_cb = ReduceLROnPlateau(
     cooldown=3,
     min_lr=1e-6
 )
-check_cb = ModelCheckpoint(
-    filepath=os.path.join(MODEL_DIR, 'model-best.h5'),
-    monitor='val_categorical_accuracy',
-    verbose=1,
-    save_best_only=True
-)
-
+tb_cb = TensorBoard(LOGS_PATH, batch_size=BATCH_SIZE)
+log_cb = LoggerCallback()
+tqdm_cb = TQDMCallback()
 hist = model.fit_generator(
     generator=train_seq,
     steps_per_epoch=len(train_seq),
     epochs=EPOCHS,
     verbose=0,
-    callbacks=[check_cb, reduce_cb, tb_cb, tqdm_cb],
+    callbacks=[check_cb, reduce_cb, tb_cb, log_cb, tqdm_cb],
     validation_data=val_seq,
     validation_steps=len(val_seq)
 )
