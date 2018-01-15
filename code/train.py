@@ -53,11 +53,11 @@ check_cb = ModelCheckpoint(
     save_best_only=True
 )
 reduce_cb = ReduceLROnPlateau(
-    monitor='val_categorical_accuracy',
+    monitor='val_loss',
     factor=0.3,
     patience=5,
     verbose=1,
-    epsilon=0.01,
+    epsilon=0.0005,
     cooldown=3,
     min_lr=1e-6
 )
