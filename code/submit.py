@@ -66,7 +66,7 @@ if N_AUG != 0:
             steps=len(test_seq),
             verbose=1
         )
-        preds += aug_preds ** 0.5
+        preds += aug_preds ** 0.4
 ids = np.argmax(preds, axis=1)
 labels = [ID2LABEL[id_] for id_ in ids]
 data = {

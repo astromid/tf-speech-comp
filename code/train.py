@@ -48,7 +48,7 @@ model = models.SeResNet3().model
 
 check_cb = ModelCheckpoint(
     filepath=os.path.join(MODEL_DIR, 'model-best.h5'),
-    monitor='val_categorical_accuracy',
+    monitor='val_loss',
     verbose=1,
     save_best_only=True
 )
