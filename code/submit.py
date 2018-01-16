@@ -73,10 +73,10 @@ data = {
     'fname': test_seq.files,
     'label': labels
 }
-# sub = pd.DataFrame(data)
-# sub.to_csv(SUB_PATH, index=False)
-# print('Submission file created successfully')
-data['prob'] = preds_max
-sub_prob = pd.DataFrame(data)
-sub_prob.to_csv(os.path.join(SUB_DIR, 'pseudo-label.csv'), index=False)
-print('Submission with probs created successfully')
+sub = pd.DataFrame(data)
+sub.to_csv(SUB_PATH, index=False)
+print('Submission file created successfully')
+# data['prob'] = preds_max
+# sub_prob = pd.DataFrame(data)
+# sub_prob.to_csv(os.path.join(SUB_DIR, 'pseudo-label.csv'), index=False)
+# print('Submission with probs created successfully')
