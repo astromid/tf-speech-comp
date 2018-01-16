@@ -48,13 +48,13 @@ def palsol():
 
 class SeResNet3:
 
-    def __init__(self):
+    def __init__(self, n_hop):
         i = Input(shape=(1, L))
         mel = Melspectrogram(
             sr=L,
             n_mels=128,
             n_dft=2048,
-            n_hop=125,
+            n_hop=n_hop,
             power_melgram=2.0,
             return_decibel_melgram=True,
             trainable_fb=False,

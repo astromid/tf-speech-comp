@@ -24,9 +24,9 @@ SUB_DIR = os.path.join(ROOT_DIR, 'subs')
 N_AUG = args.aug
 
 if N_AUG == 0:
-    sub_end = '.csv'
+    sub_end = '-p.csv'
 else:
-    sub_end = f'-tta-{N_AUG}.csv'
+    sub_end = f'-tta-{N_AUG}-p.csv'
 
 if args.best == 0:
     MODEL_PATH = os.path.join(MODELS_DIR, args.name, 'model.h5')
@@ -71,12 +71,10 @@ preds_max = np.max(preds, axis=1)
 labels = [ID2LABEL[id_] for id_ in ids]
 data = {
     'fname': test_seq.files,
-    'label': labels
+    'label': labels,
+    'prob': preds_max
 }
 sub = pd.DataFrame(data)
 sub.to_csv(SUB_PATH, index=False)
-print('Submission file created successfully')
-# data['prob'] = preds_max
-# sub_prob = pd.DataFrame(data)
-# sub_prob.to_csv(os.path.join(SUB_DIR, 'pseudo-label.csv'), index=False)
-# print('Submission with probs created successfully')
+#print('Submission file created successfully')
+print('Submission with probs created successfully')
