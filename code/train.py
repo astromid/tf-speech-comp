@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--name')
 parser.add_argument('--epochs', type=int)
 parser.add_argument('--batch', type=int)
+parser.add_argument('--nhop', type=int)
 parser.add_argument('--bal', type=int, default=1)
 parser.add_argument('--eps', type=float, default=0.0)
 parser.add_argument('--sil', type=float, default=0.1)
@@ -27,6 +28,7 @@ MODEL_DIR = os.path.join(ROOT_DIR, 'models', args.name)
 LOGS_PATH = os.path.join(MODEL_DIR, 'logs')
 EPOCHS = args.epochs
 BATCH_SIZE = args.batch
+N_HOP = args.nhop
 TRAIN_PARAMS = {
     'batch_size': BATCH_SIZE,
     'balance': args.bal,
@@ -43,8 +45,7 @@ os.makedirs(LOGS_PATH, exist_ok=True)
 
 train_seq = TrainSequence2D(TRAIN_PARAMS)
 val_seq = ValSequence2D(TRAIN_PARAMS)
-# model = models.palsol()
-model = models.SeResNet3().model
+model = models.SeResNet3(n_hop=N_HOP).model
 
 check_cb = ModelCheckpoint(
     filepath=os.path.join(MODEL_DIR, 'model-best.h5'),
