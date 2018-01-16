@@ -48,16 +48,16 @@ model = models.SeResNet3().model
 
 check_cb = ModelCheckpoint(
     filepath=os.path.join(MODEL_DIR, 'model-best.h5'),
-    monitor='val_loss',
+    monitor='val_categorical_accuracy',
     verbose=1,
     save_best_only=True
 )
 reduce_cb = ReduceLROnPlateau(
-    monitor='val_loss',
+    monitor='val_categorical_accuracy',
     factor=0.3,
     patience=5,
     verbose=1,
-    epsilon=0.0005,
+    epsilon=0.001,
     cooldown=3,
     min_lr=1e-6
 )

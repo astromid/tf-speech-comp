@@ -58,7 +58,6 @@ preds = model.predict_generator(
     verbose=1
 )
 if N_AUG != 0:
-    preds = preds ** 0.4
     test_seq.augment = 1
     for _ in range(N_AUG):
         aug_preds = model.predict_generator(
@@ -66,13 +65,18 @@ if N_AUG != 0:
             steps=len(test_seq),
             verbose=1
         )
-        preds += aug_preds ** 0.4
+        preds += aug_preds
 ids = np.argmax(preds, axis=1)
+preds_max = np.max(preds, axis=1)
 labels = [ID2LABEL[id_] for id_ in ids]
 data = {
     'fname': test_seq.files,
     'label': labels
 }
-sub = pd.DataFrame(data)
-sub.to_csv(SUB_PATH, index=False)
-print('Submission file created successfully')
+# sub = pd.DataFrame(data)
+# sub.to_csv(SUB_PATH, index=False)
+# print('Submission file created successfully')
+data['prob'] = preds_max
+sub_prob = pd.DataFrame(data)
+sub_prob.to_csv(os.path.join(SUB_DIR, 'pseudo-label.csv'), index=False)
+print('Submission with probs created successfully')
