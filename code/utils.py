@@ -8,7 +8,7 @@ from librosa.effects import time_stretch
 from keras.callbacks import Callback
 from tqdm import tqdm
 from sklearn.utils.class_weight import compute_sample_weight
-from numba import cuda
+from numba import jit
 
 # SEED = 12017952
 # np.random.seed(SEED)
@@ -162,7 +162,7 @@ class AudioSequence(Sequence):
         shift_ = int(np.random.uniform(-self.time_shift, self.time_shift))
         return np.roll(sample, shift_)
 
-    @cuda.jit
+    @jit
     def _speed_tune(self, sample):
         rate_ = np.random.uniform(1 - self.speed_tune, 1 + self.speed_tune)
         return time_stretch(sample.astype('float'), rate_)
