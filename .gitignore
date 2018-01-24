@@ -102,6 +102,8 @@ ENV/
 
 # data
 *.wav
+/data/train
+/data/test
 
 #idea
 .idea
